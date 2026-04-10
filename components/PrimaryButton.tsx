@@ -12,18 +12,29 @@ interface PrimaryButtonProps {
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
-  variant?: 'filled' | 'outlined';
+  variant?: 'filled' | 'outlined' | 'frosted';
 }
 
 export default function PrimaryButton(props: PrimaryButtonProps) {
   var variant = props.variant || 'filled';
-  var isFilled = variant === 'filled';
+
+  var buttonStyle = variant === 'frosted'
+    ? styles.frosted
+    : variant === 'outlined'
+    ? styles.outlined
+    : styles.filled;
+
+  var textColor = variant === 'filled'
+    ? Colors.primary
+    : variant === 'frosted'
+    ? Colors.textOnGradient
+    : Colors.primary;
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        isFilled ? styles.filled : styles.outlined,
+        buttonStyle,
         props.disabled && styles.disabled,
       ]}
       onPress={props.onPress}
@@ -31,12 +42,12 @@ export default function PrimaryButton(props: PrimaryButtonProps) {
       activeOpacity={0.8}
     >
       {props.loading ? (
-        <ActivityIndicator color={isFilled ? Colors.white : Colors.primary} />
+        <ActivityIndicator color={textColor} />
       ) : (
         <Text
           style={[
             styles.text,
-            isFilled ? styles.filledText : styles.outlinedText,
+            { color: textColor },
             props.disabled && styles.disabledText,
           ]}
         >
@@ -57,28 +68,28 @@ var styles = StyleSheet.create({
     minHeight: 56,
   },
   filled: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.white,
   },
   outlined: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: Colors.white,
+  },
+  frosted: {
+    backgroundColor: Colors.frosted,
+    borderWidth: 1,
+    borderColor: Colors.frostedBorder,
   },
   disabled: {
-    backgroundColor: Colors.disabled,
-    borderColor: Colors.disabled,
+    backgroundColor: Colors.frosted,
+    borderColor: Colors.frostedBorder,
+    opacity: 0.5,
   },
   text: {
     fontSize: 17,
     fontFamily: Fonts.uiBold,
   },
-  filledText: {
-    color: Colors.white,
-  },
-  outlinedText: {
-    color: Colors.primary,
-  },
   disabledText: {
-    color: Colors.white,
+    color: Colors.textOnGradientMuted,
   },
 });

@@ -69,7 +69,7 @@ serve(async function (req: Request) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       to: askerResult.data.push_token,
-      title: 'what are we?',
+      title: 'are we?',
       body: '\uD83D\uDC8C ' + recipientName + ' answered! Tap to see what they said.',
       data: { questionId: payload.record.id },
       sound: 'default',

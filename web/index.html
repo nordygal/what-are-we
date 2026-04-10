@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>are we?™</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(170deg, #cc5a4e 0%, #b84840 30%, #a03a34 55%, #8c3230 80%, #742a24 100%);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 24px;
+      padding: 48px 32px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 400;
+      color: #f5e6e0;
+      margin-bottom: 8px;
+    }
+
+    .brand .tm {
+      font-size: 10px;
+      vertical-align: super;
+    }
+
+    .message {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 24px 0 8px;
+      color: #ffffff;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 32px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 24px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-ios {
+      background: #ffffff;
+      color: #cc5a4e;
+    }
+
+    .btn-android {
+      background: transparent;
+      color: #ffffff;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .btn-icon {
+      font-size: 22px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0 16px;
+      color: rgba(255,255,255,0.25);
+      font-size: 13px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+    }
+
+    .already {
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0;
+    }
+
+    .watermark {
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      color: rgba(255,255,255,0.25);
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">are we<span class="tm">™</span></div>
+    <p class="message">you've got a question waiting</p>
+    <p class="subtitle">because someone had to ask 👀</p>
+    <div class="buttons">
+      <a href="https://apps.apple.com/app/are-we/id000000000" class="btn btn-ios">
+        Download on the App Store
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=com.arewe.app" class="btn btn-android">
+        Get it on Google Play
+      </a>
+    </div>
+    <div class="divider">or</div>
+    <p class="already">Already have the app? It should open automatically.</p>
+    <p class="watermark">are we™</p>
+  </div>
+
+  <script>
+    // Try to open the app via universal link / deep link
+    var path = window.location.pathname;
+    var match = path.match(/\/q\/([^/?]+)/);
+    if (match) {
+      var deepLinkId = match[1];
+      // Try app scheme first
+      window.location.href = 'arewe://answer/' + deepLinkId;
+    }
+  </script>
+</body>
+</html>

@@ -31,11 +31,8 @@ export default function AnswerGrid(props: AnswerGridProps) {
                 >
                   <Text style={styles.emoji}>{option.emoji}</Text>
                   <Text
-                    style={[
-                      styles.label,
-                      isSelected && styles.labelSelected,
-                    ]}
-                    numberOfLines={1}
+                    style={[styles.label, isSelected && styles.labelSelected]}
+                    numberOfLines={2}
                   >
                     {option.label}
                   </Text>
@@ -61,30 +58,28 @@ var styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 14,
-    borderRadius: 25,
-    backgroundColor: Colors.warmWhite,
+    borderRadius: 16,
+    backgroundColor: Colors.frosted,
     borderWidth: 1,
-    borderColor: Colors.sand,
-    gap: 6,
+    borderColor: Colors.frostedBorder,
+    gap: 8,
   },
   pillSelected: {
-    backgroundColor: Colors.cream,
-    borderColor: Colors.primary,
-    borderWidth: 2,
+    backgroundColor: 'rgba(255,255,255,0.30)',
+    borderColor: 'rgba(255,255,255,0.40)',
   },
   emoji: {
-    fontSize: 18,
+    fontSize: 20,
   },
   label: {
-    fontSize: 13,
-    fontFamily: Fonts.ui,
-    color: Colors.dark,
+    fontSize: 14,
+    fontFamily: Fonts.uiBold,
+    color: Colors.textOnGradient,
     flexShrink: 1,
   },
   labelSelected: {
-    fontFamily: Fonts.uiBold,
-    color: Colors.primaryDark,
+    color: Colors.white,
   },
 });

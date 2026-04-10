@@ -1,217 +1,259 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
+  TouchableOpacity,
   StyleSheet,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Fonts, AnswerKey } from '../../lib/constants';
-import { getQuestion, answerQuestion, supabase, getOrCreateUser } from '../../lib/supabase';
+import { getQuestion, answerQuestion } from '../../lib/supabase';
 import Header from '../../components/Header';
 import Avatar from '../../components/Avatar';
 import AnswerGrid from '../../components/AnswerGrid';
-import PrimaryButton from '../../components/PrimaryButton';
 
 export default function AnswerScreen() {
   var params = useLocalSearchParams<{ id: string }>();
   var router = useRouter();
   var insets = useSafeAreaInsets();
-  var [question, setQuestion] = useState<any>(null);
-  var [loading, setLoading] = useState(true);
   var [selected, setSelected] = useState<AnswerKey | null>(null);
+  var [loading, setLoading] = useState(true);
   var [submitting, setSubmitting] = useState(false);
-  var [answered, setAnswered] = useState(false);
+  var [question, setQuestion] = useState<any>(null);
+
+  var askerName = question?.asker?.display_name || 'Someone';
 
   useEffect(function () {
-    loadQuestion();
+    if (!params.id) return;
+
+    if (params.id === 'demo') {
+      setQuestion({
+        id: 'demo',
+        asker: { display_name: 'Sophie' },
+        answer: null,
+      });
+      setLoading(false);
+      return;
+    }
+
+    getQuestion(params.id).then(function (result) {
+      if (result.data) {
+        setQuestion(result.data);
+        if (result.data.answer) {
+          setSelected(result.data.answer);
+        }
+      }
+      setLoading(false);
+    });
   }, [params.id]);
 
-  async function loadQuestion() {
-    if (!params.id) return;
-    var result = await getQuestion(params.id);
-    if (result.error) {
-      Alert.alert('Error', 'Could not find this question');
-    } else {
-      setQuestion(result.data);
-      if (result.data.answer) {
-        setAnswered(true);
-        setSelected(result.data.answer);
-      }
-    }
-    setLoading(false);
-  }
-
-  async function handleAnswer(key: AnswerKey) {
-    setSelected(key);
+  async function handleSubmit() {
+    if (!selected || !question) return;
     setSubmitting(true);
 
-    try {
-      // Link recipient if logged in
-      var sessionResult = await supabase.auth.getSession();
-      if (sessionResult.data.session?.user?.phone) {
-        await getOrCreateUser(sessionResult.data.session.user.phone);
-      }
+    if (question.id === 'demo') {
+      router.replace('/reveal/demo?answer=' + selected);
+      return;
+    }
 
-      var result = await answerQuestion(question.id, key);
+    try {
+      var result = await answerQuestion(question.id, selected);
       if (result.error) {
-        Alert.alert('Error', 'Failed to save answer');
-        setSelected(null);
+        Alert.alert('Error', 'Could not submit answer');
       } else {
-        setAnswered(true);
+        router.replace('/reveal/' + params.id);
       }
     } catch (e) {
       Alert.alert('Error', 'Something went wrong');
-      setSelected(null);
     }
-
     setSubmitting(false);
   }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
+      <LinearGradient
+        colors={[...Colors.gradientColors]}
+        locations={[0, 0.3, 0.55, 0.8, 1]}
+        start={{ x: 0.4, y: 0 }}
+        end={{ x: 0.6, y: 1 }}
+        style={styles.loadingContainer}
+      >
+        <ActivityIndicator size="large" color={Colors.white} />
+      </LinearGradient>
     );
   }
 
-  var askerName = question?.asker?.display_name || 'Someone';
-
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={[...Colors.gradientColors]}
+      locations={[0, 0.3, 0.55, 0.8, 1]}
+      start={{ x: 0.4, y: 0 }}
+      end={{ x: 0.6, y: 1 }}
+      style={styles.container}
+    >
       <Header />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: insets.bottom + 24 },
         ]}
+        showsVerticalScrollIndicator={false}
       >
+        {/* Asker info */}
         <View style={styles.askerSection}>
-          <Avatar name={askerName} size={56} />
+          <Avatar name={askerName} size={64} />
           <Text style={styles.askerName}>{askerName}</Text>
           <Text style={styles.wantsToKnow}>wants to know...</Text>
         </View>
 
-        <View style={styles.questionCard}>
-          <Text style={styles.questionText}>what are we? 💬</Text>
+        {/* Speech bubble */}
+        <View style={styles.speechBubble}>
+          <Text style={styles.speechText}>what are we?</Text>
         </View>
 
-        {!answered ? (
-          <>
-            <View style={styles.gridSection}>
-              <AnswerGrid selected={selected} onSelect={handleAnswer} />
-            </View>
+        {/* Answer grid */}
+        <View style={styles.gridSection}>
+          <AnswerGrid selected={selected} onSelect={setSelected} />
+        </View>
 
-            <Text style={styles.privacyNote}>
-              Private answers. Only {askerName} will see your response.
-            </Text>
-          </>
-        ) : null}
+        {/* Divider */}
+        <View style={styles.divider} />
 
-        <View style={styles.viralSection}>
-          {answered ? (
-            <Text style={styles.answeredConfirm}>
-              Answer sent! ✅
-            </Text>
-          ) : null}
-          <Text style={styles.viralTitle}>Your turn 🔄</Text>
-          <Text style={styles.viralSubtitle}>
-            Someone you've been wondering about?
-          </Text>
-          <PrimaryButton
-            title="Ask Someone"
-            onPress={function () {
-              router.push('/ask');
-            }}
-          />
+        {/* Viral loop */}
+        <Text style={styles.viralText}>one good question deserves another</Text>
+
+        {/* Button */}
+        <View style={styles.buttonContainer}>
+          {selected ? (
+            <TouchableOpacity
+              style={styles.buttonFilled}
+              onPress={handleSubmit}
+              disabled={submitting}
+              activeOpacity={0.8}
+            >
+              {submitting ? (
+                <ActivityIndicator color={Colors.primary} />
+              ) : (
+                <Text style={[styles.buttonText, { color: Colors.primary }]}>
+                  Submit
+                </Text>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.buttonOutlined}
+              onPress={function () {
+                router.push('/ask');
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.buttonText, { color: Colors.white }]}>
+                Ask
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
 
 var styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.warmWhite,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.warmWhite,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingHorizontal: 24,
   },
   askerSection: {
     alignItems: 'center',
-    gap: 8,
-  },
-  askerName: {
-    fontSize: 20,
-    fontFamily: Fonts.uiBold,
-    color: Colors.dark,
-  },
-  wantsToKnow: {
-    fontSize: 15,
-    fontFamily: Fonts.ui,
-    color: Colors.gray,
-  },
-  questionCard: {
-    backgroundColor: Colors.cream,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 20,
-  },
-  questionText: {
-    fontSize: 20,
-    fontFamily: Fonts.brandBold,
-    color: Colors.dark,
-  },
-  gridSection: {
     marginBottom: 16,
   },
-  privacyNote: {
-    fontSize: 13,
+  askerName: {
+    fontSize: 22,
+    fontFamily: Fonts.brandBold,
+    color: Colors.white,
+    marginTop: 10,
+  },
+  wantsToKnow: {
+    fontSize: 14,
     fontFamily: Fonts.ui,
-    color: Colors.gray,
-    textAlign: 'center',
-    marginBottom: 32,
+    color: Colors.textOnGradientMuted,
+    marginTop: 2,
   },
-  viralSection: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.sand,
-    paddingTop: 24,
-    gap: 12,
-    alignItems: 'center',
+  speechBubble: {
+    backgroundColor: Colors.frosted,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.frostedBorder,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
-  answeredConfirm: {
-    fontSize: 17,
-    fontFamily: Fonts.uiBold,
-    color: Colors.primary,
+  speechText: {
+    fontSize: 18,
+    fontFamily: Fonts.brand,
+    fontStyle: 'italic',
+    color: Colors.textOnGradient,
+  },
+  gridSection: {
     marginBottom: 8,
   },
-  viralTitle: {
-    fontSize: 20,
-    fontFamily: Fonts.uiBold,
-    color: Colors.dark,
+  divider: {
+    height: 1,
+    backgroundColor: Colors.frostedBorder,
+    marginVertical: 16,
   },
-  viralSubtitle: {
-    fontSize: 15,
+  viralText: {
+    fontSize: 14,
     fontFamily: Fonts.ui,
-    color: Colors.gray,
-    marginBottom: 4,
+    fontStyle: 'italic',
+    color: Colors.textOnGradientMuted,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  buttonContainer: {
+    alignItems: 'center',
+  },
+  buttonFilled: {
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+    alignSelf: 'stretch',
+  },
+  buttonOutlined: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+  },
+  buttonText: {
+    fontSize: 17,
+    fontFamily: Fonts.uiBold,
   },
 });

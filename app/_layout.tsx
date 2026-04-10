@@ -31,11 +31,9 @@ export default function RootLayout() {
       setSession(result.data.session);
       setIsReady(true);
     });
-
     var subscription = supabase.auth.onAuthStateChange(function (_event, newSession) {
       setSession(newSession);
     });
-
     return function () {
       subscription.data.subscription.unsubscribe();
     };
@@ -52,10 +50,6 @@ export default function RootLayout() {
         .then(function (result) {
           if (result.data) {
             setUserId(result.data.id);
-            if (!result.data.display_name) {
-              router.replace('/onboarding');
-              return;
-            }
           }
         });
     }
@@ -133,11 +127,10 @@ export default function RootLayout() {
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
-        <Stack.Screen name="onboarding" />
         <Stack.Screen name="ask" />
+        <Stack.Screen name="sent" />
         <Stack.Screen name="answer/[id]" />
         <Stack.Screen name="reveal/[id]" />
-        <Stack.Screen name="sent" />
       </Stack>
     </View>
   );

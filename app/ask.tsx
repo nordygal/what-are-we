@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,14 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Contacts from 'expo-contacts';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Fonts } from '../lib/constants';
-import { supabase, getOrCreateUser, createQuestion } from '../lib/supabase';
 import { sendQuestion } from '../lib/sms';
 import Header from '../components/Header';
 import Avatar from '../components/Avatar';
-import PrimaryButton from '../components/PrimaryButton';
 
 interface ContactItem {
   id: string;
@@ -30,12 +29,36 @@ export default function AskScreen() {
   var [contacts, setContacts] = useState<ContactItem[]>([]);
   var [filtered, setFiltered] = useState<ContactItem[]>([]);
   var [search, setSearch] = useState('');
-  var [selected, setSelected] = useState<ContactItem | null>(null);
+  var [selected, setSelected] = useState<string | null>(null);
   var [loading, setLoading] = useState(false);
 
   useEffect(function () {
     loadContacts();
   }, []);
+
+  async function loadContacts() {
+    var permission = await Contacts.requestPermissionsAsync();
+    if (permission.status !== 'granted') return;
+
+    var result = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
+      sort: Contacts.SortTypes.FirstName,
+    });
+
+    var parsed: ContactItem[] = [];
+    for (var i = 0; i < result.data.length; i++) {
+      var c = result.data[i];
+      if (c.name && c.phoneNumbers && c.phoneNumbers.length > 0) {
+        parsed.push({
+          id: c.id || String(i),
+          name: c.name,
+          phone: c.phoneNumbers[0].number || '',
+        });
+      }
+    }
+    setContacts(parsed);
+    setFiltered(parsed);
+  }
 
   useEffect(function () {
     if (!search.trim()) {
@@ -50,84 +73,42 @@ export default function AskScreen() {
     }
   }, [search, contacts]);
 
-  async function loadContacts() {
-    var permission = await Contacts.requestPermissionsAsync();
-    if (permission.status !== 'granted') {
-      Alert.alert(
-        'Contacts Required',
-        'Please grant contacts access to send questions.'
-      );
-      return;
-    }
-
-    var result = await Contacts.getContactsAsync({
-      fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
-      sort: Contacts.SortTypes.FirstName,
-    });
-
-    var items: ContactItem[] = [];
-    for (var i = 0; i < result.data.length; i++) {
-      var contact = result.data[i];
-      if (contact.phoneNumbers && contact.phoneNumbers.length > 0 && contact.name) {
-        items.push({
-          id: contact.id || String(i),
-          name: contact.name,
-          phone: contact.phoneNumbers[0].number || '',
-        });
-      }
-    }
-
-    setContacts(items);
-    setFiltered(items);
-  }
+  var selectedContact = contacts.find(function (c) {
+    return c.id === selected;
+  });
 
   async function handleSend() {
-    if (!selected) return;
+    if (!selectedContact) return;
     setLoading(true);
-
     try {
-      var smsResult = await sendQuestion({
-        recipientPhone: selected.phone,
-        recipientName: selected.name,
+      var result = await sendQuestion({
+        recipientPhone: selectedContact.phone,
+        recipientName: selectedContact.name,
       });
-
-      if (smsResult.success) {
-        // Save question to Supabase
-        var sessionResult = await supabase.auth.getSession();
-        var phone = sessionResult.data.session?.user?.phone;
-        if (phone) {
-          var user = await getOrCreateUser(phone);
-          if (user) {
-            await createQuestion(user.id, selected.phone, smsResult.deepLinkId);
-          }
-        }
-
-        setSelected(null);
+      if (result.success) {
         router.push('/sent');
+      } else {
+        Alert.alert('Error', 'Could not open SMS composer');
       }
     } catch (e) {
-      Alert.alert('Error', 'Failed to send question');
+      Alert.alert('Error', 'Something went wrong');
     }
-
     setLoading(false);
   }
 
   function renderContact(item: { item: ContactItem }) {
     var contact = item.item;
-    var isSelected = selected && selected.id === contact.id;
-
+    var isSelected = selected === contact.id;
     return (
       <TouchableOpacity
-        style={[styles.contactRow, isSelected && styles.contactSelected]}
+        style={[styles.contactRow, isSelected && styles.contactRowSelected]}
         onPress={function () {
-          setSelected(contact);
+          setSelected(contact.id);
         }}
         activeOpacity={0.7}
       >
         <Avatar name={contact.name} size={44} />
-        <Text
-          style={[styles.contactName, isSelected && styles.contactNameSelected]}
-        >
+        <Text style={[styles.contactName, isSelected && styles.contactNameSelected]}>
           {contact.name}
         </Text>
       </TouchableOpacity>
@@ -135,113 +116,182 @@ export default function AskScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={[...Colors.gradientColors]}
+      locations={[0, 0.3, 0.55, 0.8, 1]}
+      start={{ x: 0.4, y: 0 }}
+      end={{ x: 0.6, y: 1 }}
+      style={styles.container}
+    >
       <Header />
 
-      <View style={styles.questionCard}>
-        <Text style={styles.questionText}>what are we? 💬</Text>
-      </View>
+      <View style={styles.content}>
+        {/* Question card */}
+        <View style={styles.questionCard}>
+          <View style={styles.questionCardInner}>
+            <Text style={styles.askLabel}>ASK</Text>
+            <Text style={styles.questionText}>"what are we?"</Text>
+          </View>
+          <Text style={styles.chatIcon}>💬</Text>
+        </View>
 
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search contacts..."
-          placeholderTextColor={Colors.gray}
-          value={search}
-          onChangeText={setSearch}
+        {/* Search bar */}
+        <View style={styles.searchBar}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search contacts..."
+            placeholderTextColor={Colors.textOnGradientMuted}
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+
+        {/* Divider */}
+        <View style={styles.divider} />
+
+        {/* Contact list */}
+        <FlatList
+          data={filtered}
+          keyExtractor={function (item) {
+            return item.id;
+          }}
+          renderItem={renderContact}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
         />
-      </View>
 
-      <FlatList
-        data={filtered}
-        keyExtractor={function (item) {
-          return item.id;
-        }}
-        renderItem={renderContact}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-      />
+        {/* Send button */}
+        <View style={{ paddingBottom: insets.bottom + 12 }}>
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              !selectedContact && styles.sendButtonDisabled,
+            ]}
+            onPress={handleSend}
+            disabled={!selectedContact || loading}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.sendButtonText,
+                !selectedContact && styles.sendButtonTextDisabled,
+              ]}
+            >
+              {selectedContact
+                ? 'Send to ' + selectedContact.name + ' \u2192'
+                : 'Select a contact'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <PrimaryButton
-          title={
-            selected ? 'Send to ' + selected.name + ' ✈' : 'Select a contact'
-          }
-          onPress={handleSend}
-          disabled={!selected}
-          loading={loading}
-        />
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 var styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.warmWhite,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
   questionCard: {
-    backgroundColor: Colors.cream,
-    marginHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 12,
-    padding: 20,
+    backgroundColor: Colors.frosted,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.frostedBorder,
+    padding: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+  },
+  questionCardInner: {
+    flex: 1,
+  },
+  askLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.uiBold,
+    color: Colors.textOnGradientMuted,
+    letterSpacing: 1,
+    marginBottom: 4,
   },
   questionText: {
     fontSize: 20,
-    fontFamily: Fonts.brandBold,
-    color: Colors.dark,
+    fontFamily: Fonts.brand,
+    fontStyle: 'italic',
+    color: Colors.textOnGradient,
   },
-  searchContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 8,
+  chatIcon: {
+    fontSize: 24,
+    marginLeft: 12,
   },
-  searchInput: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    fontFamily: Fonts.ui,
-    color: Colors.dark,
-    borderWidth: 1,
-    borderColor: Colors.sand,
+  divider: {
+    height: 1,
+    backgroundColor: Colors.frostedBorder,
+    marginVertical: 16,
   },
   list: {
     flex: 1,
-  },
-  listContent: {
-    paddingHorizontal: 20,
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
     gap: 12,
-    marginBottom: 2,
-  },
-  contactSelected: {
-    backgroundColor: Colors.cream,
   },
   contactName: {
+    flex: 1,
     fontSize: 16,
     fontFamily: Fonts.ui,
-    color: Colors.dark,
+    color: Colors.textOnGradient,
   },
   contactNameSelected: {
+    color: Colors.white,
     fontFamily: Fonts.uiBold,
-    color: Colors.primaryDark,
   },
-  bottomBar: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.sand,
-    backgroundColor: Colors.warmWhite,
+  contactRowSelected: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 12,
+    marginHorizontal: -8,
+    paddingHorizontal: 8,
+  },
+  searchBar: {
+    backgroundColor: Colors.frosted,
+    borderWidth: 1,
+    borderColor: Colors.frostedBorder,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    marginTop: 12,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontFamily: Fonts.ui,
+    color: Colors.white,
+  },
+  sendButton: {
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  sendButtonDisabled: {
+    backgroundColor: Colors.frosted,
+    borderWidth: 1,
+    borderColor: Colors.frostedBorder,
+    opacity: 0.5,
+  },
+  sendButtonText: {
+    fontSize: 17,
+    fontFamily: Fonts.uiBold,
+    color: Colors.primary,
+  },
+  sendButtonTextDisabled: {
+    color: Colors.textOnGradientMuted,
   },
 });

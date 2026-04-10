@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "what are we?",
+    "name": "are we?",
     "slug": "what-are-we",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,12 +10,15 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#c4845c"
+      "backgroundColor": "#da4840"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.arewe.app",
+      "associatedDomains": ["applinks:askarewe.com"],
       "infoPlist": {
         "NSContactsUsageDescription": "We need access to your contacts so you can send the question to someone."
       }
@@ -23,20 +26,23 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#c4845c"
+        "backgroundColor": "#da4840"
       },
       "package": "com.arewe.app",
-      "permissions": ["READ_CONTACTS"]
+      "permissions": [
+        "READ_CONTACTS"
+      ]
     },
     "plugins": [
       "expo-router",
       "expo-contacts",
       "expo-notifications",
-      "expo-font"
+      "expo-font",
+      "expo-asset"
     ],
     "extra": {
       "router": {
-        "origin": "https://arewe.app"
+        "origin": "https://askarewe.com"
       },
       "eas": {
         "projectId": "your-project-id"

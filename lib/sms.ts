@@ -17,10 +17,7 @@ export async function sendQuestion(
   var deepLinkId = generateDeepLinkId();
   var url = getQuestionUrl(deepLinkId);
 
-  var message =
-    'Someone wants to know... what are we? 💬\n' +
-    'Open the app to find out who & answer:\n' +
-    url;
+  var message = 'because one of us had to ask \uD83D\uDC40 ' + url;
 
   var isAvailable = await SMS.isAvailableAsync();
 

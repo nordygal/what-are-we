@@ -39,7 +39,7 @@ var RevealCard = React.forwardRef(function RevealCardInner(
         </Text>
       </View>
       <Text style={styles.timestamp}>{formattedDate}</Text>
-      <Text style={styles.watermark}>what are we?™</Text>
+      <Text style={styles.watermark}>are we?™</Text>
     </View>
   );
 });

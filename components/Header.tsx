@@ -1,30 +1,52 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Fonts } from '../lib/constants';
 
-export default function Header() {
+interface HeaderProps {
+  rightIcon?: React.ReactNode;
+}
+
+export default function Header(props: HeaderProps) {
   var insets = useSafeAreaInsets();
 
   return (
-    <LinearGradient
-      colors={[Colors.gradientStart, Colors.gradientEnd]}
-      style={[styles.container, { paddingTop: insets.top + 12 }]}
-    >
-      <Text style={styles.brand}>what are we?™</Text>
-    </LinearGradient>
+    <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
+      <View style={styles.inner}>
+        <View style={styles.spacer} />
+        <Text style={styles.brand}>are we<Text style={styles.tm}>™</Text></Text>
+        <View style={styles.spacer}>
+          {props.rightIcon ? props.rightIcon : null}
+        </View>
+      </View>
+    </View>
   );
 }
 
 var styles = StyleSheet.create({
   container: {
     paddingBottom: 16,
+  },
+  inner: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  spacer: {
+    width: 40,
+    alignItems: 'flex-end',
   },
   brand: {
-    fontSize: 24,
-    fontFamily: Fonts.brandBold,
-    color: Colors.white,
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 26,
+    fontFamily: Fonts.brand,
+    color: Colors.textOnGradient,
+  },
+  tm: {
+    fontSize: 10,
+    position: 'relative',
+    top: -10,
   },
 });
