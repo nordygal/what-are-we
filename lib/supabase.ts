@@ -100,6 +100,13 @@ export async function getMyReceipts() {
   return result;
 }
 
+export async function deleteReceipt(deepLinkId: string) {
+  var result = await supabase.rpc('delete_receipt', {
+    p_deep_link_id: deepLinkId,
+  });
+  return result;
+}
+
 export async function updatePushToken(userId: string, token: string) {
   var result = await supabase
     .from('users')

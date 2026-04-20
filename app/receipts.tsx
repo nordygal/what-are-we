@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
+import { FlatList, Swipeable } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../lib/constants';
-import { getMyReceipts } from '../lib/supabase';
+import { getMyReceipts, deleteReceipt } from '../lib/supabase';
 import Header from '../components/Header';
 import Avatar from '../components/Avatar';
 
@@ -37,6 +38,7 @@ export default function ReceiptsScreen() {
   var [receipts, setReceipts] = useState<Receipt[]>([]);
   var [loading, setLoading] = useState(true);
   var [refreshing, setRefreshing] = useState(false);
+  var openSwipeableRef = useRef<Swipeable | null>(null);
 
   async function load() {
     var result = await getMyReceipts();
@@ -45,6 +47,37 @@ export default function ReceiptsScreen() {
     }
     setLoading(false);
     setRefreshing(false);
+  }
+
+  function confirmDelete(r: Receipt, swipeable: Swipeable | null) {
+    Alert.alert(
+      'Delete receipt?',
+      'This removes the receipt for both of you.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: function () {
+            if (swipeable) swipeable.close();
+          },
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async function () {
+            if (swipeable) swipeable.close();
+            var res = await deleteReceipt(r.deep_link_id);
+            if (res.error || res.data === false) {
+              Alert.alert('Error', "Couldn't delete that receipt.");
+              return;
+            }
+            setReceipts(function (prev) {
+              return prev.filter(function (x) { return x.id !== r.id; });
+            });
+          },
+        },
+      ]
+    );
   }
 
   useFocusEffect(
@@ -80,39 +113,71 @@ export default function ReceiptsScreen() {
     var answerDisplay = r.answer ? getAnswerDisplay(r.answer) : null;
     var pending = !r.answer;
 
+    var swipeableRef: Swipeable | null = null;
+
+    function renderRightActions() {
+      return (
+        <TouchableOpacity
+          onPress={function () {
+            confirmDelete(r, swipeableRef);
+          }}
+          activeOpacity={0.8}
+          style={styles.deleteAction}
+        >
+          <Text style={styles.deleteActionText}>Delete</Text>
+        </TouchableOpacity>
+      );
+    }
+
     return (
-      <TouchableOpacity
-        style={styles.row}
-        activeOpacity={0.7}
-        onPress={function () {
-          if (pending) return;
-          router.push('/reveal/' + r.deep_link_id);
+      <Swipeable
+        ref={function (ref) {
+          swipeableRef = ref;
+        }}
+        renderRightActions={renderRightActions}
+        overshootRight={false}
+        friction={2}
+        rightThreshold={40}
+        onSwipeableWillOpen={function () {
+          if (openSwipeableRef.current && openSwipeableRef.current !== swipeableRef) {
+            openSwipeableRef.current.close();
+          }
+          openSwipeableRef.current = swipeableRef;
         }}
       >
-        <Avatar name={otherName} size={44} />
-        <View style={styles.rowBody}>
-          <Text style={styles.rowTitle}>
-            {rolePrefix} <Text style={styles.rowName}>{otherName}</Text>
-          </Text>
-          <Text style={styles.rowAnswer}>
-            {pending
-              ? 'waiting for answer...'
-              : answerDisplay
-              ? answerDisplay.label + ' ' + answerDisplay.emoji
-              : String(r.answer)}
-          </Text>
-        </View>
-        <View style={styles.rowMeta}>
-          <Text style={styles.rowDate}>
-            {formatDate(r.answered_at || r.sent_at)}
-          </Text>
-          <Text style={styles.rowReceipt}>
-            {r.receipt_number
-              ? '#' + String(r.receipt_number).padStart(5, '0')
-              : '#00000'}
-          </Text>
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.row}
+          activeOpacity={0.7}
+          onPress={function () {
+            if (pending) return;
+            router.push('/reveal/' + r.deep_link_id);
+          }}
+        >
+          <Avatar name={otherName} size={44} />
+          <View style={styles.rowBody}>
+            <Text style={styles.rowTitle}>
+              {rolePrefix} <Text style={styles.rowName}>{otherName}</Text>
+            </Text>
+            <Text style={styles.rowAnswer}>
+              {pending
+                ? 'waiting for answer...'
+                : answerDisplay
+                ? answerDisplay.label + ' ' + answerDisplay.emoji
+                : String(r.answer)}
+            </Text>
+          </View>
+          <View style={styles.rowMeta}>
+            <Text style={styles.rowDate}>
+              {formatDate(r.answered_at || r.sent_at)}
+            </Text>
+            <Text style={styles.rowReceipt}>
+              {r.receipt_number
+                ? '#' + String(r.receipt_number).padStart(5, '0')
+                : '#00000'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
     );
   }
 
@@ -217,8 +282,8 @@ var styles = StyleSheet.create({
   },
   titleWrap: {
     paddingHorizontal: 24,
-    paddingTop: 4,
-    paddingBottom: 16,
+    paddingTop: 32,
+    paddingBottom: 20,
     alignItems: 'center',
   },
   title: {
@@ -298,5 +363,16 @@ var styles = StyleSheet.create({
   sep: {
     height: 1,
     backgroundColor: Colors.frostedBorder,
+  },
+  deleteAction: {
+    backgroundColor: '#d0443c',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 88,
+  },
+  deleteActionText: {
+    color: Colors.white,
+    fontFamily: Fonts.uiBold,
+    fontSize: 15,
   },
 });

@@ -3,7 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
-import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { supabase } from '../lib/supabase';
 import { registerForPushNotifications, addNotificationResponseListener } from '../lib/notifications';
 import { parseDeepLink } from '../lib/deeplink';
@@ -140,7 +140,7 @@ export default function RootLayout() {
   }
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="ask" />
@@ -149,6 +149,6 @@ export default function RootLayout() {
         <Stack.Screen name="reveal/[id]" />
         <Stack.Screen name="receipts" />
       </Stack>
-    </View>
+    </GestureHandlerRootView>
   );
 }
