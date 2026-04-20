@@ -41,28 +41,23 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Fetch user record when session exists. If there's a session but no
-  // display_name on file, bounce back to /login so the name step runs —
-  // otherwise receipts/reveal/answer end up showing "Someone" for the asker.
-  var [needsName, setNeedsName] = useState(false);
+  // Fetch user record when session exists (for push token registration).
+  // The display_name gate is handled per-screen via useFocusEffect so it
+  // always sees fresh state and can't create a redirect loop.
   useEffect(function () {
     if (session && session.user && session.user.phone) {
       supabase
         .from('users')
-        .select('id, display_name')
+        .select('id')
         .eq('phone_number', session.user.phone)
         .maybeSingle()
         .then(function (result) {
           if (result.data) {
             setUserId(result.data.id);
-            setNeedsName(!result.data.display_name);
-          } else {
-            setNeedsName(true);
           }
         });
     } else {
       setUserId(null);
-      setNeedsName(false);
     }
   }, [session]);
 
@@ -131,13 +126,8 @@ export default function RootLayout() {
 
     if (!session && !inAuthGroup && !inAnswerRoute) {
       router.replace('/login');
-      return;
     }
-
-    if (session && needsName && !inAuthGroup && !inAnswerRoute) {
-      router.replace('/login');
-    }
-  }, [session, segments, isReady, needsName]);
+  }, [session, segments, isReady]);
 
   var onLayoutRootView = useCallback(function () {
     if (fontsLoaded && isReady) {

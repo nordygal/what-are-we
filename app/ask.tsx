@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,11 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Contacts from 'expo-contacts';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Fonts } from '../lib/constants';
 import { sendQuestion } from '../lib/sms';
+import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Avatar from '../components/Avatar';
 
@@ -35,6 +36,33 @@ export default function AskScreen() {
   useEffect(function () {
     loadContacts();
   }, []);
+
+  // If the signed-in user has no display_name yet, bounce to /login so the
+  // name step runs. Runs on focus (not mount) so a fresh save in /login
+  // immediately clears the gate when we come back — no stale state, no loop.
+  useFocusEffect(
+    useCallback(function () {
+      var cancelled = false;
+      supabase.auth.getSession().then(function (r) {
+        var phone = r.data.session && r.data.session.user && r.data.session.user.phone;
+        if (!phone || cancelled) return;
+        supabase
+          .from('users')
+          .select('display_name')
+          .eq('phone_number', phone)
+          .maybeSingle()
+          .then(function (res) {
+            if (cancelled) return;
+            if (!res.data || !res.data.display_name) {
+              router.replace('/login');
+            }
+          });
+      });
+      return function () {
+        cancelled = true;
+      };
+    }, [])
+  );
 
   async function loadContacts() {
     var permission = await Contacts.requestPermissionsAsync();
