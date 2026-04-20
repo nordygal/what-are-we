@@ -184,21 +184,6 @@ export default function AskScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Dev nav — remove before shipping */}
-        <View style={styles.devNav}>
-          <TouchableOpacity onPress={function () { router.push('/login'); }}>
-            <Text style={styles.devLink}>Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={function () { router.push('/sent'); }}>
-            <Text style={styles.devLink}>Sent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={function () { router.push('/answer/demo'); }}>
-            <Text style={styles.devLink}>Answer</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={function () { router.push('/reveal/demo'); }}>
-            <Text style={styles.devLink}>Reveal</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </LinearGradient>
   );
@@ -308,17 +293,5 @@ var styles = StyleSheet.create({
   },
   sendButtonTextDisabled: {
     color: Colors.textOnGradientMuted,
-  },
-  devNav: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-    paddingVertical: 12,
-  },
-  devLink: {
-    fontSize: 13,
-    fontFamily: Fonts.ui,
-    color: 'rgba(255,255,255,0.4)',
-    textDecorationLine: 'underline',
   },
 });

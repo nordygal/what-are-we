@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,17 +9,42 @@ import {
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Fonts } from '../lib/constants';
-import { sendOtp, verifyOtp } from '../lib/supabase';
+import { sendOtp, verifyOtp, supabase, getOrCreateUser } from '../lib/supabase';
 import PrimaryButton from '../components/PrimaryButton';
 
 export default function LoginScreen() {
   var insets = useSafeAreaInsets();
+  var router = useRouter();
   var [phone, setPhone] = useState('');
   var [otp, setOtp] = useState('');
-  var [step, setStep] = useState<'phone' | 'otp'>('phone');
+  var [name, setName] = useState('');
+  var [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone');
   var [loading, setLoading] = useState(false);
+
+  // If session already exists on mount, jump straight to the right step.
+  useEffect(function () {
+    supabase.auth.getSession().then(function (result) {
+      var session = result.data.session;
+      var sessionPhone = session && session.user && session.user.phone;
+      if (!sessionPhone) return;
+      supabase
+        .from('users')
+        .select('display_name')
+        .eq('phone_number', sessionPhone)
+        .maybeSingle()
+        .then(function (dbResult) {
+          if (dbResult.data && dbResult.data.display_name) {
+            router.replace('/ask');
+          } else {
+            setPhone(sessionPhone);
+            setStep('name');
+          }
+        });
+    });
+  }, []);
 
   function formatPhone(raw: string): string {
     var digits = raw.replace(/[^0-9]/g, '');
@@ -60,9 +85,41 @@ export default function LoginScreen() {
       var result = await verifyOtp(formatted, otp);
       if (result.error) {
         Alert.alert('Error', result.error.message);
+      } else {
+        var sessionPhone =
+          (result.data && result.data.session && result.data.session.user && result.data.session.user.phone) ||
+          formatted;
+        var existing = await supabase
+          .from('users')
+          .select('display_name')
+          .eq('phone_number', sessionPhone)
+          .maybeSingle();
+        if (existing.data && existing.data.display_name) {
+          router.replace('/ask');
+        } else {
+          setPhone(sessionPhone);
+          setStep('name');
+        }
       }
     } catch (e) {
       Alert.alert('Error', 'Failed to verify code');
+    }
+    setLoading(false);
+  }
+
+  async function handleSaveName() {
+    var trimmed = name.trim();
+    if (!trimmed) return;
+    setLoading(true);
+    try {
+      var user = await getOrCreateUser(phone, trimmed);
+      if (!user) {
+        Alert.alert('Error', 'Could not save your name');
+      } else {
+        router.replace('/ask');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Something went wrong');
     }
     setLoading(false);
   }
@@ -102,7 +159,7 @@ export default function LoginScreen() {
               disabled={!phone.trim()}
             />
           </View>
-        ) : (
+        ) : step === 'otp' ? (
           <View style={styles.formArea}>
             <Text style={styles.label}>Enter verification code</Text>
             <Text style={styles.sublabel}>Sent to {phone}</Text>
@@ -121,6 +178,28 @@ export default function LoginScreen() {
               onPress={handleVerifyOtp}
               loading={loading}
               disabled={otp.length !== 6}
+            />
+          </View>
+        ) : (
+          <View style={styles.formArea}>
+            <Text style={styles.label}>What's your name?</Text>
+            <Text style={styles.sublabel}>
+              This shows up when you ask someone a question.
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Your name"
+              placeholderTextColor={Colors.textOnGradientMuted}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              autoFocus
+            />
+            <PrimaryButton
+              title="Continue"
+              onPress={handleSaveName}
+              loading={loading}
+              disabled={!name.trim()}
             />
           </View>
         )}

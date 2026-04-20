@@ -112,7 +112,8 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Auth gate
+  // Auth gate: push unauthenticated users to /login unless they're on a public answer route.
+  // login.tsx is responsible for routing to /ask once phone+OTP+name are all collected.
   useEffect(function () {
     if (!isReady) return;
 
@@ -121,8 +122,6 @@ export default function RootLayout() {
 
     if (!session && !inAuthGroup && !inAnswerRoute) {
       router.replace('/login');
-    } else if (session && inAuthGroup) {
-      router.replace('/ask');
     }
   }, [session, segments, isReady]);
 

@@ -18,9 +18,8 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.arewe.app",
+      "buildNumber": "2",
       "associatedDomains": [
-        "applinks:arewe.app",
-        "applinks:askarewe.com",
         "applinks:arewe.app",
         "applinks:askarewe.com"
       ],
