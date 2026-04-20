@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { captureRef } from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
 import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../../lib/constants';
 import { supabase } from '../../lib/supabase';
 import Header from '../../components/Header';
@@ -20,6 +23,8 @@ export default function RevealScreen() {
   var insets = useSafeAreaInsets();
   var [question, setQuestion] = useState<any>(null);
   var [loading, setLoading] = useState(true);
+  var [receiptNumber, setReceiptNumber] = useState<number | null>(null);
+  var screenRef = useRef<View>(null);
 
   useEffect(function () {
     loadQuestion();
@@ -36,6 +41,7 @@ export default function RevealScreen() {
         asker: { display_name: 'Sophie' },
         recipient: { display_name: 'Alex' },
       });
+      setReceiptNumber(12);
       setLoading(false);
       return;
     }
@@ -57,11 +63,38 @@ export default function RevealScreen() {
         Alert.alert('Error', 'Could not find this question');
       } else {
         setQuestion(altResult.data);
+        setReceiptNumber(altResult.data.receipt_number || null);
       }
     } else {
       setQuestion(result.data);
+      setReceiptNumber(result.data.receipt_number || null);
     }
     setLoading(false);
+  }
+
+  async function handleSave() {
+    try {
+      var permission = await MediaLibrary.requestPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission needed', 'Allow access to save to camera roll');
+        return;
+      }
+
+      var uri = await captureRef(screenRef, {
+        format: 'png',
+        quality: 1,
+      });
+
+      await MediaLibrary.saveToLibraryAsync(uri);
+      Alert.alert('Saved!', 'Image saved to your camera roll');
+    } catch (e) {
+      Alert.alert('Error', 'Could not save image');
+    }
+  }
+
+  function formatReceiptNumber(num: number | null): string {
+    if (!num) return 'receipt #00000';
+    return 'receipt #' + String(num).padStart(5, '0');
   }
 
   if (loading) {
@@ -103,63 +136,73 @@ export default function RevealScreen() {
   }
 
   var downloadIcon = (
-    <TouchableOpacity activeOpacity={0.7} style={styles.downloadBtn}>
-      <View style={styles.downloadIcon}>
-        {/* Vertical stem */}
+    <TouchableOpacity activeOpacity={0.7} style={styles.downloadBtn} onPress={handleSave}>
+      <View style={styles.downloadIconWrap}>
         <View style={styles.downloadStem} />
-        {/* Arrow head */}
         <View style={styles.downloadArrowHead} />
-        {/* Tray / shallow U */}
         <View style={styles.downloadTray} />
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <LinearGradient
-      colors={[...Colors.gradientColors]}
-      locations={[0, 0.3, 0.55, 0.8, 1]}
-      start={{ x: 0.4, y: 0 }}
-      end={{ x: 0.6, y: 1 }}
-      style={styles.container}
-    >
-      <Header rightIcon={downloadIcon} />
+    <View ref={screenRef} collapsable={false} style={{ flex: 1 }}>
+      <LinearGradient
+        colors={[...Colors.gradientColors]}
+        locations={[0, 0.3, 0.55, 0.8, 1]}
+        start={{ x: 0.4, y: 0 }}
+        end={{ x: 0.6, y: 1 }}
+        style={styles.container}
+      >
+        <Header rightIcon={downloadIcon} />
 
-      <View style={[styles.content, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.card}>
-          {/* Asked text */}
-          <Text style={styles.askedText}>
-            {askerName} asked "what are we?"
-          </Text>
+        <View style={[styles.content, { paddingBottom: insets.bottom + 20 }]}>
+          <View style={styles.card}>
+            {/* Asked text */}
+            <Text style={styles.askedText}>
+              {askerName} asked "what are we?"
+            </Text>
 
-          {/* Responder avatar + name */}
-          <Avatar name={responderName} size={64} />
-          <Text style={styles.responderName}>{responderName}</Text>
+            {/* Responder avatar + name */}
+            <Avatar name={responderName} size={64} />
+            <Text style={styles.responderName}>{responderName}</Text>
+            <Text style={styles.answeredLabel}>answered</Text>
 
-          {/* Answer bubble */}
-          {answerDisplay ? (
-            <View style={styles.answerBubble}>
-              <Text style={styles.answerText}>
-                {answerDisplay.label} {answerDisplay.emoji}
-              </Text>
-            </View>
-          ) : null}
+            {/* Answer pill */}
+            {answerDisplay ? (
+              <View style={styles.answerPill}>
+                <Text
+                  style={styles.answerText}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                  numberOfLines={1}
+                >
+                  {answerDisplay.label} {answerDisplay.emoji}
+                </Text>
+              </View>
+            ) : null}
 
-          {/* Timestamp */}
-          {dateStr ? (
-            <View style={styles.timestamp}>
-              <Text style={styles.dateText}>{dateStr}</Text>
-              <Text style={styles.timeText}>{timeStr}</Text>
-            </View>
-          ) : null}
+            {/* Timestamp */}
+            {dateStr ? (
+              <View style={styles.timestamp}>
+                <Text style={styles.dateText}>{dateStr}</Text>
+                <Text style={styles.timeText}>{timeStr}</Text>
+              </View>
+            ) : null}
 
-          {/* Watermark */}
-          <Text style={styles.watermark}>
-            are we<Text style={styles.watermarkTm}>™</Text>
-          </Text>
+            {/* Receipt number */}
+            <Text style={styles.receiptText}>
+              {formatReceiptNumber(receiptNumber)}
+            </Text>
+
+            {/* Watermark */}
+            <Text style={styles.watermark}>
+              are we<Text style={styles.watermarkTm}>™</Text>
+            </Text>
+          </View>
         </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </View>
   );
 }
 
@@ -178,10 +221,8 @@ var styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: Colors.frosted,
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Colors.frostedBorder,
     paddingVertical: 40,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -190,7 +231,7 @@ var styles = StyleSheet.create({
   downloadBtn: {
     padding: 4,
   },
-  downloadIcon: {
+  downloadIconWrap: {
     alignItems: 'center',
     width: 24,
     height: 24,
@@ -227,50 +268,61 @@ var styles = StyleSheet.create({
   askedText: {
     fontSize: 15,
     fontFamily: Fonts.ui,
-    color: Colors.textOnGradientMuted,
+    color: '#666666',
     textAlign: 'center',
     marginBottom: 24,
   },
   responderName: {
     fontSize: 22,
     fontFamily: Fonts.brandBold,
-    color: Colors.white,
+    color: '#333333',
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 4,
   },
-  answerBubble: {
-    backgroundColor: Colors.frosted,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.frostedBorder,
+  answeredLabel: {
+    fontSize: 13,
+    fontFamily: Fonts.ui,
+    color: '#666666',
+    marginBottom: 16,
+  },
+  answerPill: {
+    backgroundColor: '#742a24',
+    borderRadius: 20,
     paddingVertical: 14,
     paddingHorizontal: 28,
     marginBottom: 20,
+    maxWidth: '100%',
   },
   answerText: {
-    fontSize: 22,
+    fontSize: 26,
     fontFamily: Fonts.brandBold,
-    color: Colors.textOnGradient,
+    color: '#ffffff',
   },
   timestamp: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   dateText: {
     fontSize: 15,
     fontFamily: Fonts.uiBold,
-    color: Colors.textOnGradient,
+    color: '#333333',
   },
   timeText: {
     fontSize: 13,
     fontFamily: Fonts.ui,
-    color: Colors.textOnGradientMuted,
+    color: '#666666',
     marginTop: 2,
+  },
+  receiptText: {
+    fontSize: 12,
+    fontFamily: Fonts.mono,
+    color: '#666666',
+    marginBottom: 16,
   },
   watermark: {
     fontSize: 18,
     fontFamily: Fonts.brand,
-    color: 'rgba(255,255,255,0.25)',
+    color: '#666666',
   },
   watermarkTm: {
     fontSize: 8,

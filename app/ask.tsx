@@ -178,12 +178,27 @@ export default function AskScreen() {
               ]}
             >
               {selectedContact
-                ? 'Send to ' + selectedContact.name + ' \u2192'
+                ? 'Ask ' + selectedContact.name + ' \u2192'
                 : 'Select a contact'}
             </Text>
           </TouchableOpacity>
         </View>
 
+        {/* Dev nav — remove before shipping */}
+        <View style={styles.devNav}>
+          <TouchableOpacity onPress={function () { router.push('/login'); }}>
+            <Text style={styles.devLink}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={function () { router.push('/sent'); }}>
+            <Text style={styles.devLink}>Sent</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={function () { router.push('/answer/demo'); }}>
+            <Text style={styles.devLink}>Answer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={function () { router.push('/reveal/demo'); }}>
+            <Text style={styles.devLink}>Reveal</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -198,11 +213,11 @@ var styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   questionCard: {
-    backgroundColor: Colors.frosted,
+    backgroundColor: 'rgba(255,255,255,0.20)',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.frostedBorder,
-    padding: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
+    padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -216,15 +231,15 @@ var styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 4,
   },
+  chatIcon: {
+    fontSize: 24,
+    marginLeft: 12,
+  },
   questionText: {
     fontSize: 20,
     fontFamily: Fonts.brand,
     fontStyle: 'italic',
-    color: Colors.textOnGradient,
-  },
-  chatIcon: {
-    fontSize: 24,
-    marginLeft: 12,
+    color: Colors.white,
   },
   divider: {
     height: 1,
@@ -293,5 +308,17 @@ var styles = StyleSheet.create({
   },
   sendButtonTextDisabled: {
     color: Colors.textOnGradientMuted,
+  },
+  devNav: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    paddingVertical: 12,
+  },
+  devLink: {
+    fontSize: 13,
+    fontFamily: Fonts.ui,
+    color: 'rgba(255,255,255,0.4)',
+    textDecorationLine: 'underline',
   },
 });

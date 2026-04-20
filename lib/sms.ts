@@ -1,5 +1,6 @@
 import * as SMS from 'expo-sms';
 import { generateDeepLinkId, getQuestionUrl } from './deeplink';
+// import { generateOneLinkUrl } from './appsflyer';
 
 interface SendQuestionParams {
   recipientPhone: string;
@@ -15,6 +16,8 @@ export async function sendQuestion(
   params: SendQuestionParams
 ): Promise<SendQuestionResult> {
   var deepLinkId = generateDeepLinkId();
+
+  // TODO: Use AppsFlyer OneLink in production build
   var url = getQuestionUrl(deepLinkId);
 
   var message = 'because one of us had to ask \uD83D\uDC40 ' + url;

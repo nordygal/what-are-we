@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid/non-secure';
 
-var BASE_URL = 'https://askarewe.com';
+var BASE_URL = 'https://arewe.app';
 
 export function generateDeepLinkId(): string {
   return nanoid(8);
@@ -18,8 +18,12 @@ export function parseDeepLink(url: string): string | null {
   if (schemeMatch) return schemeMatch[1];
 
   // Handle https://askarewe.com/q/XXXX
-  var webMatch = url.match(/askarewe\.com\/q\/([^/?]+)/);
+  var webMatch = url.match(/arewe\.app\/q\/([^/?]+)/);
   if (webMatch) return webMatch[1];
+
+  // Legacy domain
+  var legacyMatch = url.match(/askarewe\.com\/q\/([^/?]+)/);
+  if (legacyMatch) return legacyMatch[1];
 
   return null;
 }

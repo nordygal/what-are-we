@@ -7,6 +7,7 @@ import { View } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { registerForPushNotifications, addNotificationResponseListener } from '../lib/notifications';
 import { parseDeepLink } from '../lib/deeplink';
+// import { initAppsFlyer, onDeepLink, onInstallConversionData } from '../lib/appsflyer';
 import { Session } from '@supabase/supabase-js';
 
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +25,7 @@ export default function RootLayout() {
     'DMSans': require('../assets/fonts/DMSans-Regular.ttf'),
     'DMSans-Medium': require('../assets/fonts/DMSans-Medium.ttf'),
     'DMSans-Bold': require('../assets/fonts/DMSans-Bold.ttf'),
+    'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   useEffect(function () {
@@ -76,7 +78,18 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Handle deep links
+  // Initialize AppsFlyer (disabled in Expo Go — needs native build)
+  // useEffect(function () {
+  //   initAppsFlyer();
+  //   onInstallConversionData(function (questionId) {
+  //     router.push('/answer/' + questionId);
+  //   });
+  //   onDeepLink(function (questionId) {
+  //     router.push('/answer/' + questionId);
+  //   });
+  // }, []);
+
+  // Handle deep links (fallback via expo-linking)
   useEffect(function () {
     function handleUrl(event: { url: string }) {
       var deepLinkId = parseDeepLink(event.url);

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>are we - Icon Generator</title>
+<style>
+  @font-face {
+    font-family: 'Playfair Display';
+    src: url('assets/fonts/PlayfairDisplay-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Playfair Display';
+    src: url('assets/fonts/PlayfairDisplay-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Playfair Display';
+    src: url('assets/fonts/PlayfairDisplay-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+  }
+  body { background: #1a1a1a; color: white; font-family: -apple-system, sans-serif; padding: 40px; text-align: center; }
+  h2 { margin-top: 40px; font-size: 14px; color: #aaa; }
+  canvas { border-radius: 16px; margin: 10px; cursor: pointer; }
+  .row { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+  p { color: #888; font-size: 12px; margin-top: 8px; }
+  .download-btn { background: #cc5a4e; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 8px; }
+</style>
+</head>
+<body>
+
+<h1>are we™ — App Icon Options</h1>
+<p>Click any icon to download as 1024x1024 PNG</p>
+
+<h2>Option A — "aw" monogram</h2>
+<div class="row">
+  <canvas id="a1" width="1024" height="1024"></canvas>
+</div>
+
+<h2>Option B — Speech bubble with "?"</h2>
+<div class="row">
+  <canvas id="b1" width="1024" height="1024"></canvas>
+</div>
+
+<h2>Option C — "are we" text</h2>
+<div class="row">
+  <canvas id="c1" width="1024" height="1024"></canvas>
+</div>
+
+<h2>Option D — Two overlapping speech bubbles</h2>
+<div class="row">
+  <canvas id="d1" width="1024" height="1024"></canvas>
+</div>
+
+<br><br>
+<h2>Splash Screen Preview</h2>
+<canvas id="splash" width="428" height="926" style="border-radius: 0;"></canvas>
+<br>
+<button class="download-btn" onclick="downloadSplash()">Download Splash (1284x2778)</button>
+
+<script>
+// Coral gradient colors
+var colors = ['#cc5a4e', '#b84840', '#a03a34', '#8c3230', '#742a24'];
+
+function drawGradient(ctx, w, h) {
+  var grad = ctx.createLinearGradient(w * 0.4, 0, w * 0.6, h);
+  grad.addColorStop(0, colors[0]);
+  grad.addColorStop(0.3, colors[1]);
+  grad.addColorStop(0.55, colors[2]);
+  grad.addColorStop(0.8, colors[3]);
+  grad.addColorStop(1, colors[4]);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// Ensure Playfair Display is actually loaded before we draw to canvas
+Promise.all([
+  document.fonts.load('italic 320px "Playfair Display"'),
+  document.fonts.load('bold 280px "Playfair Display"'),
+  document.fonts.load('italic 180px "Playfair Display"'),
+  document.fonts.load('italic 48px "Playfair Display"'),
+  document.fonts.load('italic 144px "Playfair Display"'),
+  document.fonts.load('40px "Playfair Display"'),
+]).then(function () { drawAll(); });
+
+function drawAll() {
+// Option A — "aw" monogram
+(function() {
+  var c = document.getElementById('a1');
+  var ctx = c.getContext('2d');
+  drawGradient(ctx, 1024, 1024);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath();
+  ctx.arc(512, 512, 340, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.font = 'italic 320px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = '#f5e6e0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('aw', 512, 530);
+
+  c.onclick = function() { download(c, 'arewe-icon-monogram.png'); };
+})();
+
+// Option B — Speech bubble with ?
+(function() {
+  var c = document.getElementById('b1');
+  var ctx = c.getContext('2d');
+  drawGradient(ctx, 1024, 1024);
+
+  // Speech bubble
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.roundRect(220, 200, 584, 440, 60);
+  ctx.fill();
+
+  // Bubble tail
+  ctx.beginPath();
+  ctx.moveTo(440, 640);
+  ctx.lineTo(380, 740);
+  ctx.lineTo(520, 640);
+  ctx.closePath();
+  ctx.fill();
+
+  // Question mark
+  ctx.font = 'bold 280px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = '#f5e6e0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('?', 512, 440);
+})();
+document.getElementById('b1').onclick = function() { download(this, 'arewe-icon-bubble.png'); };
+
+// Option C — "are we" text
+(function() {
+  var c = document.getElementById('c1');
+  var ctx = c.getContext('2d');
+  drawGradient(ctx, 1024, 1024);
+
+  ctx.font = 'italic 180px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = '#f5e6e0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('are we', 512, 500);
+
+  // TM
+  ctx.font = '40px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillText('™', 780, 420);
+
+  c.onclick = function() { download(c, 'arewe-icon-text.png'); };
+})();
+
+// Option D — Two overlapping bubbles
+(function() {
+  var c = document.getElementById('d1');
+  var ctx = c.getContext('2d');
+  drawGradient(ctx, 1024, 1024);
+
+  // Left bubble
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath();
+  ctx.roundRect(140, 240, 420, 320, 50);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(280, 560);
+  ctx.lineTo(240, 650);
+  ctx.lineTo(360, 560);
+  ctx.closePath();
+  ctx.fill();
+
+  // Right bubble
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.beginPath();
+  ctx.roundRect(464, 240, 420, 320, 50);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(744, 560);
+  ctx.lineTo(784, 650);
+  ctx.lineTo(664, 560);
+  ctx.closePath();
+  ctx.fill();
+
+  // Hearts / question marks
+  ctx.font = '160px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('❤️', 350, 410);
+  ctx.fillText('?', 674, 410);
+
+  c.onclick = function() { download(c, 'arewe-icon-bubbles.png'); };
+})();
+
+// Splash screen
+(function() {
+  var c = document.getElementById('splash');
+  var ctx = c.getContext('2d');
+  drawGradient(ctx, 428, 926);
+
+  ctx.font = 'italic 48px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = '#f5e6e0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('are we', 214, 463);
+
+  ctx.font = '14px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillText('™', 310, 443);
+})();
+} // end drawAll
+
+function download(canvas, filename) {
+  var link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function downloadSplash() {
+  // Create full-res splash
+  var c = document.createElement('canvas');
+  c.width = 1284;
+  c.height = 2778;
+  var ctx = c.getContext('2d');
+  drawGradient(ctx, 1284, 2778);
+
+  ctx.font = 'italic 144px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = '#f5e6e0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('are we', 642, 1389);
+
+  ctx.font = '42px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillText('™', 930, 1330);
+
+  download(c, 'arewe-splash.png');
+}
+</script>
+
+</body>
+</html>

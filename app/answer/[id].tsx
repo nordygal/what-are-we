@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Fonts, AnswerKey } from '../../lib/constants';
+import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../../lib/constants';
 import { getQuestion, answerQuestion } from '../../lib/supabase';
 import Header from '../../components/Header';
 import Avatar from '../../components/Avatar';
@@ -24,6 +24,7 @@ export default function AnswerScreen() {
   var [selected, setSelected] = useState<AnswerKey | null>(null);
   var [loading, setLoading] = useState(true);
   var [submitting, setSubmitting] = useState(false);
+  var [hasSubmitted, setHasSubmitted] = useState(false);
   var [question, setQuestion] = useState<any>(null);
 
   var askerName = question?.asker?.display_name || 'Someone';
@@ -57,7 +58,8 @@ export default function AnswerScreen() {
     setSubmitting(true);
 
     if (question.id === 'demo') {
-      router.replace('/reveal/demo?answer=' + selected);
+      setHasSubmitted(true);
+      setSubmitting(false);
       return;
     }
 
@@ -66,7 +68,7 @@ export default function AnswerScreen() {
       if (result.error) {
         Alert.alert('Error', 'Could not submit answer');
       } else {
-        router.replace('/reveal/' + params.id);
+        setHasSubmitted(true);
       }
     } catch (e) {
       Alert.alert('Error', 'Something went wrong');
@@ -113,53 +115,85 @@ export default function AnswerScreen() {
           <Text style={styles.wantsToKnow}>wants to know...</Text>
         </View>
 
-        {/* Speech bubble */}
-        <View style={styles.speechBubble}>
-          <Text style={styles.speechText}>what are we?</Text>
-        </View>
-
-        {/* Answer grid */}
-        <View style={styles.gridSection}>
-          <AnswerGrid selected={selected} onSelect={setSelected} />
+        {/* Speech bubble with tail pointing up */}
+        <View style={styles.bubbleWrapper}>
+          <View style={styles.bubbleTail} />
+          <View style={styles.speechBubble}>
+            <Text style={styles.speechText}>"what are we?"</Text>
+          </View>
         </View>
 
         {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Viral loop */}
-        <Text style={styles.viralText}>one good question deserves another</Text>
+        {hasSubmitted ? (
+          <View style={styles.submittedContainer}>
+            <Text style={styles.sentConfirm}>Answer sent ✓</Text>
 
-        {/* Button */}
-        <View style={styles.buttonContainer}>
-          {selected ? (
+            {selected && getAnswerDisplay(selected) ? (
+              <View style={styles.submittedBubble}>
+                <Text style={styles.submittedAnswerText}>
+                  {getAnswerDisplay(selected)!.label} {getAnswerDisplay(selected)!.emoji}
+                </Text>
+              </View>
+            ) : null}
+
+            <Text style={styles.yourTurn}>your turn</Text>
+
             <TouchableOpacity
               style={styles.buttonFilled}
-              onPress={handleSubmit}
-              disabled={submitting}
-              activeOpacity={0.8}
-            >
-              {submitting ? (
-                <ActivityIndicator color={Colors.primary} />
-              ) : (
-                <Text style={[styles.buttonText, { color: Colors.primary }]}>
-                  Submit
-                </Text>
-              )}
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.buttonOutlined}
               onPress={function () {
-                router.push('/ask');
+                router.replace({
+                  pathname: '/ask',
+                  params: { preselect: askerName },
+                });
               }}
               activeOpacity={0.8}
             >
-              <Text style={[styles.buttonText, { color: Colors.white }]}>
-                Ask
+              <Text style={[styles.buttonText, { color: Colors.primary }]}>
+                Ask {askerName} back →
               </Text>
             </TouchableOpacity>
-          )}
-        </View>
+
+            <TouchableOpacity
+              onPress={function () {
+                router.replace('/ask');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.skipText}>or skip for now</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View>
+            {/* Answer grid */}
+            <View style={styles.gridSection}>
+              <AnswerGrid selected={selected} onSelect={setSelected} />
+            </View>
+
+            {/* Divider */}
+            <View style={styles.divider} />
+
+            {/* Buttons */}
+            <View style={styles.buttonContainer}>
+              <Text style={styles.trustText}>trust your gut</Text>
+              <TouchableOpacity
+                style={selected ? styles.buttonFilled : styles.buttonOutlined}
+                onPress={handleSubmit}
+                disabled={!selected || submitting}
+                activeOpacity={0.8}
+              >
+                {submitting ? (
+                  <ActivityIndicator color={Colors.primary} />
+                ) : (
+                  <Text style={[styles.buttonText, { color: selected ? Colors.primary : Colors.white }]}>
+                    Submit
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </LinearGradient>
   );
@@ -183,6 +217,7 @@ var styles = StyleSheet.create({
   askerSection: {
     alignItems: 'center',
     marginBottom: 16,
+    marginTop: 16,
   },
   askerName: {
     fontSize: 22,
@@ -196,15 +231,27 @@ var styles = StyleSheet.create({
     color: Colors.textOnGradientMuted,
     marginTop: 2,
   },
+  bubbleWrapper: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  bubbleTail: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderBottomWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: 'rgba(255,255,255,0.30)',
+  },
   speechBubble: {
-    backgroundColor: Colors.frosted,
+    backgroundColor: 'transparent',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.frostedBorder,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.30)',
     paddingVertical: 14,
     paddingHorizontal: 24,
-    alignSelf: 'center',
-    marginBottom: 20,
   },
   speechText: {
     fontSize: 18,
@@ -218,18 +265,18 @@ var styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: Colors.frostedBorder,
-    marginVertical: 16,
+    marginVertical: 10,
   },
-  viralText: {
+  buttonContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  trustText: {
     fontSize: 14,
     fontFamily: Fonts.ui,
     fontStyle: 'italic',
     color: Colors.textOnGradientMuted,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  buttonContainer: {
-    alignItems: 'center',
+    marginBottom: 12,
   },
   buttonFilled: {
     backgroundColor: Colors.white,
@@ -251,9 +298,46 @@ var styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 56,
+    alignSelf: 'stretch',
   },
   buttonText: {
     fontSize: 17,
     fontFamily: Fonts.uiBold,
+  },
+  submittedContainer: {
+    alignItems: 'center',
+    paddingTop: 16,
+  },
+  sentConfirm: {
+    fontSize: 18,
+    fontFamily: Fonts.uiBold,
+    color: '#4ade80',
+    marginBottom: 16,
+  },
+  submittedBubble: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    marginBottom: 40,
+  },
+  submittedAnswerText: {
+    fontSize: 24,
+    fontFamily: Fonts.brandBold,
+    color: Colors.textOnGradient,
+  },
+  yourTurn: {
+    fontSize: 14,
+    fontFamily: Fonts.uiBold,
+    color: Colors.white,
+    marginBottom: 12,
+  },
+  skipText: {
+    fontSize: 9,
+    fontFamily: Fonts.ui,
+    color: 'rgba(255,255,255,0.35)',
+    marginTop: 12,
   },
 });

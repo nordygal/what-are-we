@@ -39,6 +39,7 @@ export const Fonts = {
   ui: 'DMSans',
   uiMedium: 'DMSans-Medium',
   uiBold: 'DMSans-Bold',
+  mono: 'SpaceMono',
 } as const;
 
 export type AnswerKey =
@@ -60,15 +61,15 @@ export interface AnswerOption {
 }
 
 export const ANSWER_OPTIONS: AnswerOption[] = [
-  { key: 'in_a_relationship', emoji: '💕', label: 'in a relationship' },
-  { key: 'exclusive', emoji: '🔒', label: 'exclusive' },
+  { key: 'in_a_relationship', emoji: '❤️', label: 'in a relationship' },
+  { key: 'exclusive', emoji: '🪢', label: 'exclusive' },
   { key: 'seeing_other_people', emoji: '👀', label: 'seeing other people' },
   { key: 'keeping_it_casual', emoji: '😏', label: 'keeping it casual' },
   { key: 'friends_with_benefits', emoji: '🔥', label: 'friends with benefits' },
-  { key: 'best_friends', emoji: '🤝', label: 'best friends' },
-  { key: 'just_friends', emoji: '✌️', label: 'just friends' },
+  { key: 'best_friends', emoji: '🫶', label: 'best friends' },
+  { key: 'just_friends', emoji: '🙂', label: 'just friends' },
   { key: 'dont_know_yet', emoji: '🙈', label: "don't know yet" },
-  { key: 'we_just_met', emoji: '😅', label: 'we just met' },
+  { key: 'we_just_met', emoji: '🧊', label: 'on a break' },
   { key: 'who_is_this', emoji: '😭', label: 'who is this?' },
 ];
 

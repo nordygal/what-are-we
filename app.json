@@ -18,9 +18,15 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.arewe.app",
-      "associatedDomains": ["applinks:askarewe.com"],
+      "associatedDomains": [
+        "applinks:arewe.app",
+        "applinks:askarewe.com",
+        "applinks:arewe.app",
+        "applinks:askarewe.com"
+      ],
       "infoPlist": {
-        "NSContactsUsageDescription": "We need access to your contacts so you can send the question to someone."
+        "NSContactsUsageDescription": "We need access to your contacts so you can send the question to someone.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -30,7 +36,9 @@
       },
       "package": "com.arewe.app",
       "permissions": [
-        "READ_CONTACTS"
+        "READ_CONTACTS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
       ]
     },
     "plugins": [
@@ -42,11 +50,12 @@
     ],
     "extra": {
       "router": {
-        "origin": "https://askarewe.com"
+        "origin": "https://arewe.app"
       },
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "54c4e4d4-ff14-4e22-a528-40b6cddfdf75"
       }
-    }
+    },
+    "owner": "nordygal"
   }
 }
