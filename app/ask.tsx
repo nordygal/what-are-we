@@ -123,7 +123,19 @@ export default function AskScreen() {
       end={{ x: 0.6, y: 1 }}
       style={styles.container}
     >
-      <Header />
+      <Header
+        rightIcon={
+          <TouchableOpacity
+            onPress={function () {
+              router.push('/receipts');
+            }}
+            activeOpacity={0.7}
+            style={styles.receiptsBtn}
+          >
+            <Text style={styles.receiptsIcon}>🧾</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <View style={styles.content}>
         {/* Question card */}
@@ -219,6 +231,15 @@ var styles = StyleSheet.create({
   chatIcon: {
     fontSize: 24,
     marginLeft: 12,
+  },
+  receiptsBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  receiptsIcon: {
+    fontSize: 22,
   },
   questionText: {
     fontSize: 20,

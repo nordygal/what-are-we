@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
 import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../../lib/constants';
-import { supabase } from '../../lib/supabase';
+import { getQuestion } from '../../lib/supabase';
 import Header from '../../components/Header';
 import Avatar from '../../components/Avatar';
 
@@ -38,33 +38,17 @@ export default function RevealScreen() {
         id: 'demo',
         answer: params.answer || 'exclusive',
         answered_at: new Date().toISOString(),
-        asker: { display_name: 'Sophie' },
-        recipient: { display_name: 'Alex' },
+        asker_display_name: 'Sophie',
+        recipient_display_name: 'Alex',
       });
       setReceiptNumber(12);
       setLoading(false);
       return;
     }
 
-    var result = await supabase
-      .from('questions')
-      .select('*, asker:users!questions_asker_id_fkey(*), recipient:users!questions_recipient_id_fkey(*)')
-      .eq('deep_link_id', params.id)
-      .single();
-
-    if (result.error) {
-      var altResult = await supabase
-        .from('questions')
-        .select('*, asker:users!questions_asker_id_fkey(*), recipient:users!questions_recipient_id_fkey(*)')
-        .eq('id', params.id)
-        .single();
-
-      if (altResult.error) {
-        Alert.alert('Error', 'Could not find this question');
-      } else {
-        setQuestion(altResult.data);
-        setReceiptNumber(altResult.data.receipt_number || null);
-      }
+    var result = await getQuestion(params.id);
+    if (result.error || !result.data) {
+      Alert.alert('Error', 'Could not find this question');
     } else {
       setQuestion(result.data);
       setReceiptNumber(result.data.receipt_number || null);
@@ -113,8 +97,8 @@ export default function RevealScreen() {
 
   if (!question) return null;
 
-  var askerName = question.asker?.display_name || 'Someone';
-  var responderName = question.recipient?.display_name || 'Someone';
+  var askerName = question.asker_display_name || 'Someone';
+  var responderName = question.recipient_display_name || 'Someone';
   var answer = question.answer as AnswerKey;
   var answerDisplay = getAnswerDisplay(answer);
 

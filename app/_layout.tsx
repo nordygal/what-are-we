@@ -143,6 +143,7 @@ export default function RootLayout() {
         <Stack.Screen name="sent" />
         <Stack.Screen name="answer/[id]" />
         <Stack.Screen name="reveal/[id]" />
+        <Stack.Screen name="receipts" />
       </Stack>
     </View>
   );

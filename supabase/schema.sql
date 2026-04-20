@@ -83,3 +83,76 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TRIGGER on_user_created AFTER INSERT ON public.users
 FOR EACH ROW EXECUTE FUNCTION match_recipient_on_signup();
+
+-- RPCs for the answer flow. Anon recipients open the deep link in a browser
+-- with no JWT, so they can't satisfy the recipient_phone RLS policy. These
+-- SECURITY DEFINER functions let anyone holding a deep_link_id read the
+-- question (including the asker's display_name) and submit exactly one
+-- answer, without exposing the rest of the users table.
+
+CREATE OR REPLACE FUNCTION public.get_question_by_link(p_deep_link_id text)
+RETURNS TABLE (
+  id uuid,
+  asker_id uuid,
+  recipient_phone text,
+  recipient_id uuid,
+  answer answer_type,
+  status text,
+  deep_link_id text,
+  sent_at timestamptz,
+  answered_at timestamptz,
+  asker_display_name text
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT q.id, q.asker_id, q.recipient_phone, q.recipient_id, q.answer,
+         q.status, q.deep_link_id, q.sent_at, q.answered_at,
+         u.display_name AS asker_display_name
+    FROM public.questions q
+    LEFT JOIN public.users u ON u.id = q.asker_id
+   WHERE q.deep_link_id = p_deep_link_id;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_question_by_link(text) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.submit_answer_by_link(
+  p_deep_link_id text,
+  p_answer answer_type
+)
+RETURNS TABLE (
+  id uuid,
+  asker_id uuid,
+  recipient_phone text,
+  recipient_id uuid,
+  answer answer_type,
+  status text,
+  deep_link_id text,
+  sent_at timestamptz,
+  answered_at timestamptz,
+  asker_display_name text
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.questions
+     SET answer = p_answer,
+         status = 'answered',
+         answered_at = now()
+   WHERE questions.deep_link_id = p_deep_link_id
+     AND questions.status = 'sent';
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'question not found or already answered'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  RETURN QUERY
+    SELECT * FROM public.get_question_by_link(p_deep_link_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.submit_answer_by_link(text, answer_type) TO anon, authenticated;

@@ -54,6 +54,11 @@
   <canvas id="d1" width="1024" height="1024"></canvas>
 </div>
 
+<h2>Option E — Cream bubble on coral (new logo)</h2>
+<div class="row">
+  <canvas id="e1" width="1024" height="1024"></canvas>
+</div>
+
 <br><br>
 <h2>Splash Screen Preview</h2>
 <canvas id="splash" width="428" height="926" style="border-radius: 0;"></canvas>
@@ -79,6 +84,7 @@ function drawGradient(ctx, w, h) {
 Promise.all([
   document.fonts.load('italic 320px "Playfair Display"'),
   document.fonts.load('bold 280px "Playfair Display"'),
+  document.fonts.load('bold 420px "Playfair Display"'),
   document.fonts.load('italic 180px "Playfair Display"'),
   document.fonts.load('italic 48px "Playfair Display"'),
   document.fonts.load('italic 144px "Playfair Display"'),
@@ -193,6 +199,45 @@ document.getElementById('b1').onclick = function() { download(this, 'arewe-icon-
   ctx.fillText('?', 674, 410);
 
   c.onclick = function() { download(c, 'arewe-icon-bubbles.png'); };
+})();
+
+// Option E — Cream speech bubble on coral (new logo)
+(function() {
+  var c = document.getElementById('e1');
+  var ctx = c.getContext('2d');
+
+  // Flat primary coral background (full bleed, iOS masks corners)
+  ctx.fillStyle = '#cc5a4e';
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  // Cream speech bubble body
+  var cream = '#f4f1eb';
+  ctx.fillStyle = cream;
+  ctx.beginPath();
+  ctx.roundRect(140, 210, 744, 520, 220);
+  ctx.fill();
+
+  // Bubble tail (bottom-left, pointing down)
+  ctx.beginPath();
+  ctx.moveTo(330, 690);
+  ctx.lineTo(270, 830);
+  ctx.lineTo(430, 700);
+  ctx.closePath();
+  ctx.fill();
+
+  // Chunky "?" in coral: fill + thick stroke for bold rounded look
+  ctx.font = 'bold 460px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = '#b84840';
+  ctx.strokeStyle = '#b84840';
+  ctx.lineWidth = 56;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.strokeText('?', 512, 470);
+  ctx.fillText('?', 512, 470);
+
+  c.onclick = function() { download(c, 'arewe-icon-newlogo.png'); };
 })();
 
 // Splash screen

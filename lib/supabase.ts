@@ -76,36 +76,25 @@ export async function createQuestion(
 
 export async function getQuestion(deepLinkId: string) {
   var result = await supabase
-    .from('questions')
-    .select('*, asker:users!questions_asker_id_fkey(*)')
-    .eq('deep_link_id', deepLinkId)
-    .single();
+    .rpc('get_question_by_link', { p_deep_link_id: deepLinkId })
+    .maybeSingle();
 
   return result;
 }
 
-export async function answerQuestion(questionId: string, answer: string) {
+export async function answerQuestion(deepLinkId: string, answer: string) {
   var result = await supabase
-    .from('questions')
-    .update({
-      answer: answer,
-      status: 'answered',
-      answered_at: new Date().toISOString(),
+    .rpc('submit_answer_by_link', {
+      p_deep_link_id: deepLinkId,
+      p_answer: answer,
     })
-    .eq('id', questionId)
-    .select('*, asker:users!questions_asker_id_fkey(*)')
-    .single();
+    .maybeSingle();
 
   return result;
 }
 
-export async function getMyQuestions(userId: string) {
-  var result = await supabase
-    .from('questions')
-    .select('*, asker:users!questions_asker_id_fkey(*)')
-    .eq('asker_id', userId)
-    .order('sent_at', { ascending: false });
-
+export async function getMyReceipts() {
+  var result = await supabase.rpc('get_my_receipts');
   return result;
 }
 

@@ -27,7 +27,7 @@ export default function AnswerScreen() {
   var [hasSubmitted, setHasSubmitted] = useState(false);
   var [question, setQuestion] = useState<any>(null);
 
-  var askerName = question?.asker?.display_name || 'Someone';
+  var askerName = question?.asker_display_name || 'Someone';
 
   useEffect(function () {
     if (!params.id) return;
@@ -35,7 +35,7 @@ export default function AnswerScreen() {
     if (params.id === 'demo') {
       setQuestion({
         id: 'demo',
-        asker: { display_name: 'Sophie' },
+        asker_display_name: 'Sophie',
         answer: null,
       });
       setLoading(false);
@@ -64,7 +64,7 @@ export default function AnswerScreen() {
     }
 
     try {
-      var result = await answerQuestion(question.id, selected);
+      var result = await answerQuestion(params.id!, selected);
       if (result.error) {
         Alert.alert('Error', 'Could not submit answer');
       } else {

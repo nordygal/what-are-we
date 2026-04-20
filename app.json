@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "are we?",
+    "name": "are we",
     "slug": "what-are-we",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.arewe.app",
-      "buildNumber": "2",
+      "buildNumber": "4",
       "associatedDomains": [
         "applinks:arewe.app",
         "applinks:askarewe.com"
