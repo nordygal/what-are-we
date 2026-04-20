@@ -152,6 +152,31 @@ export default function AskScreen() {
       style={styles.container}
     >
       <Header
+        leftIcon={
+          <TouchableOpacity
+            onPress={function () {
+              Alert.alert(
+                'Log out?',
+                'You can sign back in with the same phone number anytime.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Log out',
+                    style: 'destructive',
+                    onPress: async function () {
+                      await supabase.auth.signOut();
+                    },
+                  },
+                ]
+              );
+            }}
+            activeOpacity={0.7}
+            style={styles.logoutBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.logoutIcon}>⋯</Text>
+          </TouchableOpacity>
+        }
         rightIcon={
           <TouchableOpacity
             onPress={function () {
@@ -268,6 +293,18 @@ var styles = StyleSheet.create({
   },
   receiptsIcon: {
     fontSize: 22,
+  },
+  logoutBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  logoutIcon: {
+    fontSize: 28,
+    color: Colors.textOnGradient,
+    fontFamily: Fonts.uiBold,
+    marginTop: -6,
   },
   questionText: {
     fontSize: 20,

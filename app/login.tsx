@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TextInput,
+  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -133,6 +134,18 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <View style={[styles.headerArea, { paddingTop: insets.top + 16 }]}>
+        {step !== 'phone' ? (
+          <TouchableOpacity
+            onPress={function () {
+              setStep(step === 'name' ? 'otp' : 'phone');
+            }}
+            activeOpacity={0.7}
+            style={[styles.backBtn, { top: insets.top + 8 }]}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.backBtnText}>←</Text>
+          </TouchableOpacity>
+        ) : null}
         <Text style={styles.brand}>are we<Text style={styles.tm}>™</Text></Text>
       </View>
 
@@ -215,6 +228,21 @@ var styles = StyleSheet.create({
   headerArea: {
     alignItems: 'center',
     paddingBottom: 16,
+    position: 'relative',
+  },
+  backBtn: {
+    position: 'absolute',
+    left: 16,
+    width: 40,
+    height: 40,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  backBtnText: {
+    fontSize: 28,
+    color: Colors.textOnGradient,
+    fontFamily: Fonts.ui,
   },
   brand: {
     fontSize: 26,
@@ -224,7 +252,7 @@ var styles = StyleSheet.create({
   tm: {
     fontSize: 10,
     position: 'relative',
-    top: -10,
+    top: -14,
   },
   inner: {
     flex: 1,

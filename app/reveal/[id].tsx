@@ -104,8 +104,15 @@ export default function RevealScreen() {
 
   if (!question) return null;
 
-  var askerName = question.asker_display_name || 'Someone';
-  var responderName = question.recipient_display_name || 'Someone';
+  function firstName(name: string | null | undefined): string {
+    if (!name) return 'Someone';
+    var trimmed = name.trim();
+    if (!trimmed) return 'Someone';
+    return trimmed.split(/\s+/)[0];
+  }
+
+  var askerName = firstName(question.asker_display_name);
+  var responderName = firstName(question.recipient_display_name);
   var answer = question.answer as AnswerKey;
   var answerDisplay = getAnswerDisplay(answer);
 
@@ -126,10 +133,11 @@ export default function RevealScreen() {
     dateStr = '';
   }
 
-  // Branding sits below the status bar with extra breathing room so it's
-  // visible when the image is shared to an Instagram story (where the top
-  // edge of the image is overlapped by IG's own UI).
-  var brandTopPadding = insets.top + 56;
+  // Branding sits well below the status bar so it's visible when the image
+  // is shared to an Instagram story — IG overlays a sizeable header
+  // (username + close) on the top ~18% of the story, so we push the brand
+  // down past that zone.
+  var brandTopPadding = insets.top + 140;
   // Card is centered vertically in the remaining space; we leave enough
   // bottom padding for the IG story reply bar too.
   var bottomPadding = insets.bottom + 72;
@@ -258,7 +266,7 @@ var styles = StyleSheet.create({
   brandTm: {
     fontSize: 10,
     position: 'relative',
-    top: -10,
+    top: -14,
   },
   cardWrap: {
     flex: 1,

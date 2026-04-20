@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -11,11 +10,20 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as SMS from 'expo-sms';
 import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../../lib/constants';
-import { getQuestion, answerQuestion } from '../../lib/supabase';
+import { getQuestion, answerQuestion, supabase } from '../../lib/supabase';
+import { sendQuestion } from '../../lib/sms';
 import Header from '../../components/Header';
 import Avatar from '../../components/Avatar';
 import AnswerGrid from '../../components/AnswerGrid';
+
+function firstName(name: string | null | undefined): string {
+  if (!name) return 'Someone';
+  var trimmed = name.trim();
+  if (!trimmed) return 'Someone';
+  return trimmed.split(/\s+/)[0];
+}
 
 export default function AnswerScreen() {
   var params = useLocalSearchParams<{ id: string }>();
@@ -25,9 +33,10 @@ export default function AnswerScreen() {
   var [loading, setLoading] = useState(true);
   var [submitting, setSubmitting] = useState(false);
   var [hasSubmitted, setHasSubmitted] = useState(false);
+  var [askBackLoading, setAskBackLoading] = useState(false);
   var [question, setQuestion] = useState<any>(null);
 
-  var askerName = question?.asker_display_name || 'Someone';
+  var askerName = firstName(question?.asker_display_name);
 
   useEffect(function () {
     if (!params.id) return;
@@ -36,6 +45,7 @@ export default function AnswerScreen() {
       setQuestion({
         id: 'demo',
         asker_display_name: 'Sophie',
+        asker_phone: '+15555550123',
         answer: null,
       });
       setLoading(false);
@@ -76,6 +86,53 @@ export default function AnswerScreen() {
     setSubmitting(false);
   }
 
+  async function handleAskBack() {
+    if (!question) return;
+    var askerPhone = question.asker_phone;
+    if (!askerPhone) {
+      Alert.alert('Cannot ask back', "We don't have their number on file yet.");
+      return;
+    }
+
+    setAskBackLoading(true);
+    try {
+      // Need to be signed in to create a reverse question. If not, send them
+      // through login first.
+      var sessionResult = await supabase.auth.getSession();
+      if (!sessionResult.data.session) {
+        router.push('/login');
+        return;
+      }
+
+      var smsAvailable = await SMS.isAvailableAsync();
+      if (!smsAvailable) {
+        Alert.alert('SMS unavailable', 'Your device cannot send SMS messages.');
+        return;
+      }
+
+      var result = await sendQuestion({
+        recipientPhone: askerPhone,
+        recipientName: question.asker_display_name || 'friend',
+      });
+      if (result.success) {
+        router.replace('/sent');
+      } else {
+        Alert.alert('Error', result.error || 'Could not open SMS composer');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Something went wrong');
+    }
+    setAskBackLoading(false);
+  }
+
+  function handleBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/ask');
+    }
+  }
+
   if (loading) {
     return (
       <LinearGradient
@@ -90,6 +147,17 @@ export default function AnswerScreen() {
     );
   }
 
+  var backButton = (
+    <TouchableOpacity
+      onPress={handleBack}
+      activeOpacity={0.7}
+      style={styles.backBtn}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
+      <Text style={styles.backBtnText}>←</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <LinearGradient
       colors={[...Colors.gradientColors]}
@@ -98,36 +166,29 @@ export default function AnswerScreen() {
       end={{ x: 0.6, y: 1 }}
       style={styles.container}
     >
-      <Header />
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 24 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Asker info */}
-        <View style={styles.askerSection}>
-          <Avatar name={askerName} size={64} />
-          <Text style={styles.askerName}>{askerName}</Text>
-          <Text style={styles.wantsToKnow}>wants to know...</Text>
+      <View style={styles.headerWrap}>
+        <View style={[styles.headerLeft, { top: insets.top + 18 }]}>
+          {backButton}
         </View>
+        <Header />
+      </View>
 
-        {/* Speech bubble with tail pointing up */}
-        <View style={styles.bubbleWrapper}>
-          <View style={styles.bubbleTail} />
-          <View style={styles.speechBubble}>
-            <Text style={styles.speechText}>"what are we?"</Text>
-          </View>
-        </View>
+      {hasSubmitted ? (
+        <View style={[styles.submittedRoot, { paddingBottom: insets.bottom + 24 }]}>
+          <View style={styles.submittedCentered}>
+            <Avatar name={askerName} size={64} />
+            <Text style={styles.askerName}>{askerName}</Text>
+            <Text style={styles.wantsToKnow}>wants to know...</Text>
 
-        {/* Divider */}
-        <View style={styles.divider} />
+            <View style={styles.bubbleWrapper}>
+              <View style={styles.bubbleTail} />
+              <View style={styles.speechBubble}>
+                <Text style={styles.speechText}>"what are we?"</Text>
+              </View>
+            </View>
 
-        {hasSubmitted ? (
-          <View style={styles.submittedContainer}>
+            <View style={styles.divider} />
+
             <Text style={styles.sentConfirm}>Answer sent ✓</Text>
 
             {selected && getAnswerDisplay(selected) ? (
@@ -142,17 +203,17 @@ export default function AnswerScreen() {
 
             <TouchableOpacity
               style={styles.buttonFilled}
-              onPress={function () {
-                router.replace({
-                  pathname: '/ask',
-                  params: { preselect: askerName },
-                });
-              }}
+              onPress={handleAskBack}
+              disabled={askBackLoading}
               activeOpacity={0.8}
             >
-              <Text style={[styles.buttonText, { color: Colors.primary }]}>
-                Ask {askerName} back →
-              </Text>
+              {askBackLoading ? (
+                <ActivityIndicator color={Colors.primary} />
+              ) : (
+                <Text style={[styles.buttonText, { color: Colors.primary }]}>
+                  Ask {askerName} back →
+                </Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -164,37 +225,49 @@ export default function AnswerScreen() {
               <Text style={styles.skipText}>or skip for now</Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          <View>
-            {/* Answer grid */}
-            <View style={styles.gridSection}>
-              <AnswerGrid selected={selected} onSelect={setSelected} />
-            </View>
+        </View>
+      ) : (
+        <View style={[styles.answerRoot, { paddingBottom: insets.bottom + 24 }]}>
+          <View style={styles.askerSection}>
+            <Avatar name={askerName} size={64} />
+            <Text style={styles.askerName}>{askerName}</Text>
+            <Text style={styles.wantsToKnow}>wants to know...</Text>
+          </View>
 
-            {/* Divider */}
-            <View style={styles.divider} />
-
-            {/* Buttons */}
-            <View style={styles.buttonContainer}>
-              <Text style={styles.trustText}>trust your gut</Text>
-              <TouchableOpacity
-                style={selected ? styles.buttonFilled : styles.buttonOutlined}
-                onPress={handleSubmit}
-                disabled={!selected || submitting}
-                activeOpacity={0.8}
-              >
-                {submitting ? (
-                  <ActivityIndicator color={Colors.primary} />
-                ) : (
-                  <Text style={[styles.buttonText, { color: selected ? Colors.primary : Colors.white }]}>
-                    Submit
-                  </Text>
-                )}
-              </TouchableOpacity>
+          <View style={styles.bubbleWrapper}>
+            <View style={styles.bubbleTail} />
+            <View style={styles.speechBubble}>
+              <Text style={styles.speechText}>"what are we?"</Text>
             </View>
           </View>
-        )}
-      </ScrollView>
+
+          <View style={styles.divider} />
+
+          <View style={styles.gridSection}>
+            <AnswerGrid selected={selected} onSelect={setSelected} />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.buttonContainer}>
+            <Text style={styles.trustText}>trust your gut</Text>
+            <TouchableOpacity
+              style={selected ? styles.buttonFilled : styles.buttonOutlined}
+              onPress={handleSubmit}
+              disabled={!selected || submitting}
+              activeOpacity={0.8}
+            >
+              {submitting ? (
+                <ActivityIndicator color={Colors.primary} />
+              ) : (
+                <Text style={[styles.buttonText, { color: selected ? Colors.primary : Colors.white }]}>
+                  Submit
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </LinearGradient>
   );
 }
@@ -208,11 +281,36 @@ var styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scroll: {
-    flex: 1,
+  headerWrap: {
+    position: 'relative',
   },
-  scrollContent: {
+  headerLeft: {
+    position: 'absolute',
+    left: 16,
+    zIndex: 2,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  backBtnText: {
+    fontSize: 28,
+    color: Colors.textOnGradient,
+    fontFamily: Fonts.ui,
+  },
+  answerRoot: {
+    flex: 1,
     paddingHorizontal: 24,
+  },
+  submittedRoot: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+  },
+  submittedCentered: {
+    alignItems: 'center',
   },
   askerSection: {
     alignItems: 'center',
@@ -233,6 +331,7 @@ var styles = StyleSheet.create({
   },
   bubbleWrapper: {
     alignItems: 'center',
+    marginTop: 16,
     marginBottom: 16,
   },
   bubbleTail: {
@@ -266,6 +365,7 @@ var styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.frostedBorder,
     marginVertical: 10,
+    alignSelf: 'stretch',
   },
   buttonContainer: {
     alignItems: 'center',
@@ -304,10 +404,6 @@ var styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: Fonts.uiBold,
   },
-  submittedContainer: {
-    alignItems: 'center',
-    paddingTop: 16,
-  },
   sentConfirm: {
     fontSize: 18,
     fontFamily: Fonts.uiBold,
@@ -321,7 +417,7 @@ var styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.15)',
     paddingVertical: 14,
     paddingHorizontal: 28,
-    marginBottom: 40,
+    marginBottom: 32,
   },
   submittedAnswerText: {
     fontSize: 24,
