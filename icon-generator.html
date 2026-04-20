@@ -59,6 +59,11 @@
   <canvas id="e1" width="1024" height="1024"></canvas>
 </div>
 
+<h2>Option F — "are / we" stacked on coral gradient</h2>
+<div class="row">
+  <canvas id="f1" width="1024" height="1024"></canvas>
+</div>
+
 <br><br>
 <h2>Splash Screen Preview</h2>
 <canvas id="splash" width="428" height="926" style="border-radius: 0;"></canvas>
@@ -85,6 +90,8 @@ Promise.all([
   document.fonts.load('italic 320px "Playfair Display"'),
   document.fonts.load('bold 280px "Playfair Display"'),
   document.fonts.load('bold 420px "Playfair Display"'),
+  document.fonts.load('bold 300px "Playfair Display"'),
+  document.fonts.load('bold 60px "Playfair Display"'),
   document.fonts.load('italic 180px "Playfair Display"'),
   document.fonts.load('italic 48px "Playfair Display"'),
   document.fonts.load('italic 144px "Playfair Display"'),
@@ -238,6 +245,28 @@ document.getElementById('b1').onclick = function() { download(this, 'arewe-icon-
   ctx.fillText('?', 512, 470);
 
   c.onclick = function() { download(c, 'arewe-icon-newlogo.png'); };
+})();
+
+// Option F — "are / we" stacked, bold serif on coral gradient
+(function() {
+  var c = document.getElementById('f1');
+  var ctx = c.getContext('2d');
+  drawGradient(ctx, 1024, 1024);
+
+  ctx.fillStyle = '#f5e6e0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 300px "Playfair Display", "Georgia", serif';
+  ctx.fillText('are', 512, 400);
+  ctx.fillText('we', 512, 700);
+
+  // ™ superscript, top-right of "we"
+  ctx.font = 'bold 60px "Playfair Display", "Georgia", serif';
+  ctx.fillStyle = 'rgba(245,230,224,0.85)';
+  ctx.textAlign = 'left';
+  ctx.fillText('™', 720, 600);
+
+  c.onclick = function() { download(c, 'arewe-icon-stacked.png'); };
 })();
 
 // Splash screen

@@ -30,7 +30,12 @@ export async function sendQuestion(
     return { success: false, deepLinkId: deepLinkId, error: 'Could not load user' };
   }
 
-  var dbResult = await createQuestion(asker.id, params.recipientPhone, deepLinkId);
+  var dbResult = await createQuestion(
+    asker.id,
+    params.recipientPhone,
+    deepLinkId,
+    params.recipientName
+  );
   if (dbResult.error) {
     return { success: false, deepLinkId: deepLinkId, error: dbResult.error.message };
   }

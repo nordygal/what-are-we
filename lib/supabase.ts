@@ -59,7 +59,8 @@ export async function getOrCreateUser(phone: string, displayName?: string) {
 export async function createQuestion(
   askerId: string,
   recipientPhone: string,
-  deepLinkId: string
+  deepLinkId: string,
+  recipientName?: string
 ) {
   var result = await supabase
     .from('questions')
@@ -67,6 +68,7 @@ export async function createQuestion(
       asker_id: askerId,
       recipient_phone: recipientPhone,
       deep_link_id: deepLinkId,
+      recipient_name: recipientName || null,
     })
     .select()
     .single();
