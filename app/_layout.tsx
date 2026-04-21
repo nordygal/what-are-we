@@ -7,7 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { supabase } from '../lib/supabase';
 import { registerForPushNotifications, addNotificationResponseListener } from '../lib/notifications';
 import { parseDeepLink } from '../lib/deeplink';
-// import { initAppsFlyer, onDeepLink, onInstallConversionData } from '../lib/appsflyer';
+import { initAppsFlyer, onDeepLink, onInstallConversionData } from '../lib/appsflyer';
 import { Session } from '@supabase/supabase-js';
 
 SplashScreen.preventAutoHideAsync();
@@ -82,16 +82,18 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Initialize AppsFlyer (disabled in Expo Go — needs native build)
-  // useEffect(function () {
-  //   initAppsFlyer();
-  //   onInstallConversionData(function (questionId) {
-  //     router.push('/answer/' + questionId);
-  //   });
-  //   onDeepLink(function (questionId) {
-  //     router.push('/answer/' + questionId);
-  //   });
-  // }, []);
+  // AppsFlyer: deferred deep links + runtime deep links. Init once on
+  // mount; listeners route the caller to /answer/<id> when the SDK reports
+  // an install-conversion or runtime deep-link event with a question id.
+  useEffect(function () {
+    initAppsFlyer();
+    onInstallConversionData(function (questionId) {
+      router.push('/answer/' + questionId);
+    });
+    onDeepLink(function (questionId) {
+      router.push('/answer/' + questionId);
+    });
+  }, []);
 
   // Handle deep links (fallback via expo-linking)
   useEffect(function () {

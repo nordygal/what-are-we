@@ -25,6 +25,7 @@
       ],
       "infoPlist": {
         "NSContactsUsageDescription": "We need access to your contacts so you can send the question to someone.",
+        "NSUserTrackingUsageDescription": "We use this to match you with the question you were sent when you install the app, so the answer screen opens to the right conversation.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -45,7 +46,8 @@
       "expo-contacts",
       "expo-notifications",
       "expo-font",
-      "expo-asset"
+      "expo-asset",
+      "react-native-appsflyer"
     ],
     "extra": {
       "router": {

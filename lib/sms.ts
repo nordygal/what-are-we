@@ -1,6 +1,7 @@
 import * as SMS from 'expo-sms';
 import { generateDeepLinkId, getQuestionUrl } from './deeplink';
 import { supabase, createQuestion, getOrCreateUser } from './supabase';
+import { generateOneLinkUrl } from './appsflyer';
 
 interface SendQuestionParams {
   recipientPhone: string;
@@ -19,7 +20,16 @@ export async function sendQuestion(
   params: SendQuestionParams
 ): Promise<SendQuestionResult> {
   var deepLinkId = generateDeepLinkId();
-  var url = getQuestionUrl(deepLinkId);
+  // Prefer the AppsFlyer OneLink so uninstalled recipients are carried
+  // through App Store install -> first-launch with the deep_link_value
+  // intact. generateOneLinkUrl falls back to the plain arewe.app URL if
+  // the SDK isn't ready or dashboard isn't configured.
+  var url;
+  try {
+    url = await generateOneLinkUrl(deepLinkId);
+  } catch (e) {
+    url = getQuestionUrl(deepLinkId);
+  }
 
   var sessionResult = await supabase.auth.getSession();
   var askerPhone = sessionResult.data.session?.user?.phone;
