@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>are we — per-screen animation previews</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400&display=swap"
+    rel="stylesheet"
+  >
+  <style>
+    :root {
+      --primary: #cc5a4e;
+      --primary-dark: #742a24;
+      --text: #f5e6e0;
+      --muted: rgba(255,255,255,0.55);
+      --subtle: rgba(255,255,255,0.35);
+      --frosted: rgba(255,255,255,0.14);
+      --frosted-border: rgba(255,255,255,0.18);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #1a1413;
+      color: #f0e6e0;
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      padding: 32px 20px 64px;
+    }
+
+    .wrap { max-width: 1400px; margin: 0 auto; }
+
+    header.page { text-align: center; margin-bottom: 32px; }
+    header.page h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 28px;
+      color: #f5e6e0;
+    }
+    header.page p {
+      color: #a89890;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .demo {
+      background: #241a18;
+      border: 1px solid #3a2a27;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-label { padding: 14px 16px 0; }
+    .demo-label h2 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #f5e6e0;
+      margin-bottom: 4px;
+    }
+    .demo-label .route {
+      font-family: 'Space Mono', monospace;
+      color: #c98076;
+      font-size: 12px;
+    }
+    .demo-label p {
+      font-size: 12px;
+      color: #a89890;
+      line-height: 1.45;
+      margin-top: 4px;
+    }
+
+    .mock {
+      margin: 14px;
+      height: 460px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(170deg, #cc5a4e 0%, #b84840 30%, #a03a34 55%, #8c3230 80%, #742a24 100%);
+      position: relative;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+    }
+
+    /* ---- common mock pieces ---- */
+    .mock-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      padding: 4px 0 10px;
+    }
+    .mock-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--text);
+    }
+    .mock-brand .tm { font-size: 7px; vertical-align: super; }
+
+    .back-arrow {
+      position: absolute;
+      left: 4px; top: 4px;
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .q-card {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .q-text { display: flex; flex-direction: column; }
+    .q-label {
+      font-size: 8px; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.12em; margin-bottom: 2px;
+    }
+    .q-question {
+      font-family: 'Playfair Display', serif;
+      font-style: italic; font-weight: 700;
+      font-size: 15px; color: #fff;
+    }
+    .q-icon { font-size: 16px; }
+
+    .search {
+      background: var(--frosted);
+      border: 1px solid var(--frosted-border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+
+    .contact {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 4px;
+      border-radius: 8px;
+    }
+    .contact.selected { background: rgba(255,255,255,0.12); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700; font-size: 13px;
+    }
+    .av-a { background: #8fa47e; }
+    .av-b { background: #a09470; }
+    .av-c { background: #9482a0; }
+    .av-d { background: #7e9484; }
+    .av-e { background: #a08282; }
+    .contact .name { font-size: 12px; color: var(--text); }
+    .contact.selected .name { color: #fff; font-weight: 700; }
+
+    .send-btn {
+      margin-top: auto;
+      background: #fff;
+      color: var(--primary);
+      padding: 10px 14px;
+      border-radius: 22px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .send-btn.disabled {
+      background: var(--frosted);
+      color: var(--muted);
+      border: 1px solid var(--frosted-border);
+    }
+
+    /* =======================================================
+       LOGIN — stagger-fade entrance + button pulse when ready
+       ======================================================= */
+    .mock-login { justify-content: flex-start; padding-top: 30px; }
+    .login-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; color: var(--text);
+      text-align: center; margin-bottom: 48px;
+    }
+    .login-prompt {
+      font-size: 14px; color: #fff; text-align: center; margin-bottom: 18px;
+    }
+    .login-input {
+      background: var(--frosted);
+      border: 1px solid var(--frosted-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: #fff;
+      font-size: 16px;
+      margin-bottom: 18px;
+    }
+    .login-btn {
+      background: #fff;
+      color: var(--primary);
+      padding: 14px 18px;
+      border-radius: 26px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 14px;
+      transform-origin: center;
+    }
+
+    @keyframes loopFadeUp {
+      0%      { opacity: 0; transform: translateY(14px); }
+      10%     { opacity: 1; transform: translateY(0); }
+      92%     { opacity: 1; transform: translateY(0); }
+      100%    { opacity: 0; transform: translateY(-6px); }
+    }
+    @keyframes btnPulseLoop {
+      0%, 40%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
+      55%       { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+      75%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+
+    #demo-login .login-brand   { animation: loopFadeUp 6s ease-in-out infinite; }
+    #demo-login .login-prompt  { animation: loopFadeUp 6s ease-in-out infinite; animation-delay: 0.15s; }
+    #demo-login .login-input   { animation: loopFadeUp 6s ease-in-out infinite; animation-delay: 0.30s; }
+    #demo-login .login-btn     {
+      opacity: 0;
+      animation:
+        loopFadeUp 6s ease-in-out infinite 0.45s,
+        btnPulseLoop 6s ease-in-out infinite 0.45s;
+    }
+
+    /* =======================================================
+       SENT — plane spring-in, title + subtitle stagger
+       ======================================================= */
+    .mock-sent {
+      justify-content: center; align-items: center; text-align: center;
+    }
+    .sent-icon {
+      font-size: 64px; margin-bottom: 12px;
+      transform-origin: center;
+    }
+    .sent-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .sent-sub {
+      font-size: 12px;
+      color: var(--text);
+      padding: 0 24px;
+    }
+
+    @keyframes planeSpring {
+      0%       { opacity: 0; transform: scale(0.2) rotate(-25deg); }
+      40%      { opacity: 1; transform: scale(1.15) rotate(8deg); }
+      55%      { transform: scale(0.96) rotate(-3deg); }
+      70%      { transform: scale(1.03) rotate(0); }
+      85%,92%  { transform: scale(1) rotate(0); }
+      100%     { opacity: 0; transform: scale(1) rotate(0); }
+    }
+
+    #demo-sent .sent-icon   { opacity: 0; animation: planeSpring 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
+    #demo-sent .sent-title  { opacity: 0; animation: loopFadeUp 4s ease-in-out infinite; animation-delay: 0.5s; }
+    #demo-sent .sent-sub    { opacity: 0; animation: loopFadeUp 4s ease-in-out infinite; animation-delay: 0.65s; }
+
+    /* =======================================================
+       ANSWER — stagger in, bubble breathe, tile tap, btn pulse
+       ======================================================= */
+    .asker {
+      display: flex; flex-direction: column; align-items: center;
+      margin-bottom: 10px;
+    }
+    .asker .av-lg {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 18px;
+      background: #8fa47e;
+    }
+    .asker .n { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; color: #fff; margin-top: 6px; }
+    .asker .sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    .bubble-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
+    .bubble-tail {
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 5px solid rgba(255,255,255,0.3);
+    }
+    .bubble {
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .divider {
+      height: 1px; background: var(--frosted-border); margin: 4px 0 8px;
+    }
+
+    .grid-answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .tile {
+      background: var(--frosted);
+      border: 1px solid var(--frosted-border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 10px;
+      color: var(--text);
+      text-align: center;
+      transform-origin: center;
+    }
+    .tile.selected {
+      background: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.6);
+    }
+    .tile .e { font-size: 11px; margin-left: 2px; }
+
+    @keyframes breatheLoop {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.02); }
+    }
+    @keyframes tileTap {
+      0%, 20%     { transform: scale(1); background: rgba(255,255,255,0.14); border-color: var(--frosted-border); }
+      30%         { transform: scale(1.08); background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.8); }
+      45%         { transform: scale(1.02); background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.6); }
+      90%, 100%   { transform: scale(1); background: rgba(255,255,255,0.14); border-color: var(--frosted-border); }
+    }
+
+    #demo-answer .mock-header,
+    #demo-answer .asker,
+    #demo-answer .bubble-wrap,
+    #demo-answer .grid-answers,
+    #demo-answer .send-btn {
+      animation: loopFadeUp 8s ease-in-out infinite;
+    }
+    #demo-answer .mock-header    { animation-delay: 0s;    }
+    #demo-answer .asker          { animation-delay: 0.15s; }
+    #demo-answer .bubble-wrap    { animation-delay: 0.30s; animation-name: loopFadeUp, breatheLoop; animation-duration: 8s, 3.5s; animation-iteration-count: infinite, infinite; }
+    #demo-answer .grid-answers   { animation-delay: 0.45s; }
+    #demo-answer .send-btn       { animation-delay: 0.60s; }
+
+    #demo-answer .tile-exclusive {
+      animation: tileTap 4s ease-in-out infinite;
+      animation-delay: 2s;
+    }
+
+    /* =======================================================
+       REVEAL — card reveal, staggered lines, pill breathing
+       ======================================================= */
+    .mock-reveal { padding: 12px 20px; justify-content: center; }
+    .receipt-card {
+      background: rgba(255,255,255,0.95);
+      color: #2a1f1c;
+      border-radius: 16px;
+      padding: 22px 18px 16px;
+      text-align: center;
+      transform-origin: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .r-asked {
+      font-size: 11px; color: #7a6a63; margin-bottom: 14px;
+    }
+    .r-av {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #a09470;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 6px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .r-name {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: #2a1f1c;
+      margin-bottom: 2px;
+    }
+    .r-label { font-size: 10px; color: #7a6a63; margin-bottom: 10px; }
+    .r-pill {
+      display: inline-block;
+      background: #742a24;
+      color: #fff;
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      transform-origin: center;
+    }
+    .r-date {
+      font-size: 10px; color: #2a1f1c; margin-bottom: 2px;
+    }
+    .r-time { font-size: 9px; color: #7a6a63; margin-bottom: 8px; }
+    .r-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: #7a6a63;
+      margin-bottom: 6px;
+    }
+    .r-mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 11px;
+      color: #7a6a63;
+    }
+
+    @keyframes cardReveal {
+      0%       { opacity: 0; transform: scale(0.92) translateY(18px); }
+      60%      { opacity: 1; transform: scale(1) translateY(0); }
+      100%     { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    #demo-reveal .receipt-card {
+      animation: cardReveal 7s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    #demo-reveal .receipt-card > * {
+      opacity: 0;
+      animation: loopFadeUp 7s ease-in-out infinite;
+    }
+    #demo-reveal .r-asked { animation-delay: 0.30s; }
+    #demo-reveal .r-av    { animation-delay: 0.45s; }
+    #demo-reveal .r-name  { animation-delay: 0.55s; }
+    #demo-reveal .r-label { animation-delay: 0.65s; }
+    #demo-reveal .r-pill {
+      animation-name: loopFadeUp, breatheLoop;
+      animation-duration: 7s, 3.5s;
+      animation-delay: 0.80s, 1.8s;
+      animation-iteration-count: infinite, infinite;
+      animation-timing-function: ease-in-out, ease-in-out;
+    }
+    #demo-reveal .r-date  { animation-delay: 0.95s; }
+    #demo-reveal .r-time  { animation-delay: 1.05s; }
+    #demo-reveal .r-num   { animation-delay: 1.15s; }
+    #demo-reveal .r-mark  { animation-delay: 1.30s; }
+
+    /* =======================================================
+       RECEIPTS — staggered row fade-in + periodic tap highlight
+       ======================================================= */
+    .receipts-title {
+      text-align: center;
+      padding: 0 0 8px;
+    }
+    .receipts-title .t {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text);
+    }
+    .receipts-title .s {
+      font-family: 'DM Sans', sans-serif;
+      font-style: italic;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .r-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    .r-row .av {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .r-row .body { flex: 1; }
+    .r-row .body .title {
+      font-size: 10px; color: var(--muted);
+    }
+    .r-row .body .title b {
+      color: var(--text); font-weight: 700;
+    }
+    .r-row .body .ans {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 12px;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .r-row .meta {
+      text-align: right;
+    }
+    .r-row .meta .d {
+      font-size: 10px; color: var(--muted);
+    }
+    .r-row .meta .n {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    @keyframes rowTapHighlight {
+      0%, 80%    { background: transparent; }
+      88%, 92%   { background: rgba(255,255,255,0.10); }
+      100%       { background: transparent; }
+    }
+
+    #demo-receipts .r-row {
+      animation: loopFadeUp 6s ease-in-out infinite;
+    }
+    #demo-receipts .r-row:nth-child(1) { animation-delay: 0.20s; }
+    #demo-receipts .r-row:nth-child(2) { animation-delay: 0.30s; }
+    #demo-receipts .r-row:nth-child(3) { animation-delay: 0.40s; }
+    #demo-receipts .r-row:nth-child(4) { animation-delay: 0.50s; }
+    #demo-receipts .r-row.tapping {
+      animation-name: loopFadeUp, rowTapHighlight;
+      animation-duration: 6s, 6s;
+      animation-delay: 0.30s, 0s;
+      animation-iteration-count: infinite, infinite;
+    }
+
+    /* =======================================================
+       ASK — recap combo
+       ======================================================= */
+    @keyframes iconBob {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%      { transform: translateY(-2px) rotate(-6deg); }
+    }
+    @keyframes contactSelect {
+      0%, 20%    { background: transparent; }
+      25%, 90%   { background: rgba(255,255,255,0.12); }
+      100%       { background: transparent; }
+    }
+    @keyframes avatarSpring {
+      0%, 20%    { transform: scale(1); }
+      27%        { transform: scale(1.08); }
+      38%        { transform: scale(1.04); }
+      90%, 100%  { transform: scale(1); }
+    }
+
+    #demo-ask .q-card,
+    #demo-ask .search,
+    #demo-ask .contact,
+    #demo-ask .send-btn {
+      animation: loopFadeUp 8s ease-in-out infinite;
+    }
+    #demo-ask .q-card { animation-delay: 0s; animation-name: loopFadeUp, breatheLoop; animation-duration: 8s, 3.5s; animation-iteration-count: infinite, infinite; transform-origin: center; }
+    #demo-ask .q-icon { display: inline-block; animation: iconBob 2.4s ease-in-out infinite; }
+    #demo-ask .search { animation-delay: 0.15s; }
+    #demo-ask .contact:nth-of-type(1) { animation-delay: 0.28s; }
+    #demo-ask .contact:nth-of-type(2) { animation-delay: 0.40s; animation-name: loopFadeUp, contactSelect; animation-duration: 8s, 6s; animation-iteration-count: infinite, infinite; }
+    #demo-ask .contact:nth-of-type(2) .avatar { animation: avatarSpring 6s ease-in-out infinite; transform-origin: center; }
+    #demo-ask .contact:nth-of-type(3) { animation-delay: 0.52s; }
+    #demo-ask .contact:nth-of-type(4) { animation-delay: 0.60s; }
+    #demo-ask .send-btn { animation-delay: 0.75s; animation-name: loopFadeUp, btnPulseLoop; animation-duration: 8s, 3s; animation-iteration-count: infinite, infinite; transform-origin: center; }
+
+    footer.page {
+      margin-top: 28px;
+      text-align: center;
+      color: #6a5954;
+      font-size: 12px;
+    }
+    footer.page a { color: #c98076; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="page">
+      <h1>per-screen animation previews</h1>
+      <p>each mockup auto-loops so you can see the full sequence. pick the ones you want in build 12.</p>
+    </header>
+
+    <div class="grid">
+
+      <!-- /login -->
+      <div class="demo" id="demo-login">
+        <div class="demo-label">
+          <h2>login</h2>
+          <div class="route">/login</div>
+          <p>stagger-fade on mount (brand → prompt → input → button) + subtle button pulse once input is visible. also recommended: step cross-fade when swapping phone → otp → name.</p>
+        </div>
+        <div class="mock mock-login">
+          <div class="login-brand">are we<span class="tm">™</span></div>
+          <div class="login-prompt">Enter your phone number</div>
+          <div class="login-input">+1 (555) 000-0000</div>
+          <div class="login-btn">Send Code</div>
+        </div>
+      </div>
+
+      <!-- /sent -->
+      <div class="demo" id="demo-sent">
+        <div class="demo-label">
+          <h2>sent confirmation</h2>
+          <div class="route">/sent</div>
+          <p>✈️ plane spring-scales in with a tiny rotation (scale 0.2 → 1.15 → 1). title + subtitle fade up after. auto-dismisses to /ask after 2s.</p>
+        </div>
+        <div class="mock mock-sent">
+          <div class="sent-icon">✈️</div>
+          <div class="sent-title">Sent!</div>
+          <div class="sent-sub">You'll get a notification when they answer.</div>
+        </div>
+      </div>
+
+      <!-- /answer -->
+      <div class="demo" id="demo-answer">
+        <div class="demo-label">
+          <h2>answer flow</h2>
+          <div class="route">/answer/[id]</div>
+          <p>stagger-fade on mount (header → asker → speech bubble → grid → submit). speech bubble breathes. one tile periodically taps (scale 1.08 → 1.04 + border glow) to show the selection micro-interaction.</p>
+        </div>
+        <div class="mock mock-answer">
+          <div class="mock-header">
+            <div class="back-arrow">←</div>
+            <div class="mock-brand">are we<span class="tm">™</span></div>
+          </div>
+          <div class="asker">
+            <div class="av-lg">S</div>
+            <div class="n">Sophie</div>
+            <div class="sub">wants to know…</div>
+          </div>
+          <div class="bubble-wrap">
+            <div class="bubble-tail"></div>
+            <div class="bubble">"what are we?"</div>
+          </div>
+          <div class="divider"></div>
+          <div class="grid-answers">
+            <div class="tile">in a relationship<span class="e">❤️</span></div>
+            <div class="tile tile-exclusive">exclusive<span class="e">🪢</span></div>
+            <div class="tile">seeing others<span class="e">👀</span></div>
+            <div class="tile">casual<span class="e">😏</span></div>
+            <div class="tile">FWB<span class="e">🔥</span></div>
+            <div class="tile">ride or die<span class="e">⚔️</span></div>
+          </div>
+          <div class="send-btn disabled">Submit</div>
+        </div>
+      </div>
+
+      <!-- /reveal -->
+      <div class="demo" id="demo-reveal">
+        <div class="demo-label">
+          <h2>receipt reveal</h2>
+          <div class="route">/reveal/[id]</div>
+          <p>card scales in from 0.92 with a soft rise (envelope-opening feel). inside, each line fades up in sequence. the answer pill breathes continuously to keep it feeling alive.</p>
+        </div>
+        <div class="mock mock-reveal">
+          <div class="receipt-card">
+            <div class="r-asked">Sophie asked "what are we?"</div>
+            <div class="r-av">A</div>
+            <div class="r-name">Alex</div>
+            <div class="r-label">answered</div>
+            <div class="r-pill">exclusive 🪢</div>
+            <div class="r-date">April 20, 2026</div>
+            <div class="r-time">3:11 PM</div>
+            <div class="r-num">receipt #00004</div>
+            <div class="r-mark">are we<span style="font-size:6px">™</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- /receipts -->
+      <div class="demo" id="demo-receipts">
+        <div class="demo-label">
+          <h2>receipts list</h2>
+          <div class="route">/receipts</div>
+          <p>rows fade up in sequence on mount (40ms offset each). one row periodically highlights to show the tap micro-feedback before navigating to /reveal.</p>
+        </div>
+        <div class="mock">
+          <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
+          <div class="receipts-title">
+            <div class="t">Receipts</div>
+            <div class="s">every "what are we?" you've been part of</div>
+          </div>
+          <div class="r-row"><div class="av av-a">S</div><div class="body"><div class="title">Asked by <b>Sophie</b></div><div class="ans">exclusive 🪢</div></div><div class="meta"><div class="d">Apr 20</div><div class="n">#00004</div></div></div>
+          <div class="r-row tapping"><div class="av av-b">M</div><div class="body"><div class="title">You asked <b>Marcus</b></div><div class="ans">friends 🙂</div></div><div class="meta"><div class="d">Apr 19</div><div class="n">#00003</div></div></div>
+          <div class="r-row"><div class="av av-c">A</div><div class="body"><div class="title">Asked by <b>Alex</b></div><div class="ans">ride or die ⚔️</div></div><div class="meta"><div class="d">Apr 17</div><div class="n">#00002</div></div></div>
+          <div class="r-row"><div class="av av-d">J</div><div class="body"><div class="title">You asked <b>Jamie</b></div><div class="ans">waiting for answer…</div></div><div class="meta"><div class="d">Apr 14</div><div class="n">#00001</div></div></div>
+        </div>
+      </div>
+
+      <!-- /ask (recap) -->
+      <div class="demo" id="demo-ask">
+        <div class="demo-label">
+          <h2>ask screen (recap)</h2>
+          <div class="route">/ask</div>
+          <p>same combo already chosen: stagger-fade on mount + question card breathing + chat-icon bob + contact tap response + send-button pulse after selection.</p>
+        </div>
+        <div class="mock">
+          <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
+          <div class="q-card">
+            <div class="q-text">
+              <div class="q-label">ASK</div>
+              <div class="q-question">"what are we?"</div>
+            </div>
+            <div class="q-icon">💬</div>
+          </div>
+          <div class="search">Search contacts…</div>
+          <div class="contact"><div class="avatar av-a">S</div><div class="name">Sophie Chen</div></div>
+          <div class="contact"><div class="avatar av-b">M</div><div class="name">Marcus Lee</div></div>
+          <div class="contact"><div class="avatar av-c">A</div><div class="name">Alex Park</div></div>
+          <div class="contact"><div class="avatar av-d">J</div><div class="name">Jamie Reyes</div></div>
+          <div class="send-btn">Ask Marcus →</div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="page">
+      unlinked preview · <a href="/anims-preview">earlier per-animation preview</a> · delete after decision
+    </footer>
+  </div>
+</body>
+</html>
