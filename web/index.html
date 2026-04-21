@@ -40,7 +40,7 @@
       background-attachment: fixed;
       color: var(--text);
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-      padding: 40px 24px 32px;
+      padding: 32px 24px 24px;
     }
 
     /* ——— stagger-fade animation ——— */
@@ -94,13 +94,14 @@
 
     /* ——— headline block ——— */
     main {
-      flex: 1;
+      /* Explicit top padding only; footer margin-top owns the bottom gap
+         so the IG icon sits directly under the email cluster rather than
+         getting pinned to the viewport bottom. */
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 20px 0;
+      padding-top: clamp(60px, 14vh, 130px);
     }
 
     .headline {
@@ -125,18 +126,23 @@
 
     /* ——— footer / email form ——— */
     footer {
+      /* Flows naturally under the headline block with a controlled gap —
+         no margin-top:auto so IG stays directly under the email text
+         instead of getting flung to the viewport bottom. */
+      margin-top: clamp(40px, 10vh, 96px);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
     }
 
     .form {
       display: flex;
       align-items: baseline;
-      gap: 24px;
+      gap: 16px;
       width: 100%;
-      max-width: 640px;
+      max-width: 320px;
+      margin: 0 auto;
       padding: 0 8px;
     }
 
@@ -202,7 +208,7 @@
     .social {
       display: flex;
       justify-content: center;
-      margin-top: 6px;
+      margin-top: 4px;
     }
     .social a {
       color: #ffffff;
@@ -227,16 +233,36 @@
     }
     .status.show { display: block; }
 
+    /* ——— mobile tuning ——— */
     @media (max-width: 560px) {
+      body {
+        padding: 24px 20px 20px;
+      }
+      main {
+        padding-top: clamp(40px, 8vh, 72px);
+      }
+      footer {
+        margin-top: clamp(28px, 6vh, 56px);
+      }
       .headline {
         max-width: 12ch;
       }
       .form {
-        gap: 16px;
+        max-width: 300px;
+        gap: 12px;
       }
-      .brand {
-        font-size: 16px;
-        letter-spacing: 0.45em;
+      .input, .submit {
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding: 20px 16px 18px;
+      }
+      .form {
+        max-width: 100%;
+        gap: 10px;
       }
     }
   </style>
