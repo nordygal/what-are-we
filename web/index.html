@@ -45,20 +45,32 @@
 
     /* ——— stagger-fade animation ——— */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
+      0% {
+        opacity: 0;
+        transform: translateY(32px);
+        filter: blur(6px);
+      }
+      60% {
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
     }
     .fade {
       opacity: 0;
-      animation: fadeUp 0.95s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      will-change: opacity, transform, filter;
+      animation: fadeUp 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
-    .d1 { animation-delay: 0.10s; }
-    .d2 { animation-delay: 0.30s; }
-    .d3 { animation-delay: 0.55s; }
-    .d4 { animation-delay: 0.80s; }
-    .d5 { animation-delay: 1.00s; }
-    .d6 { animation-delay: 1.15s; }
-    .d7 { animation-delay: 1.30s; }
+    .d1 { animation-delay: 0.20s; }
+    .d2 { animation-delay: 0.50s; }
+    .d3 { animation-delay: 0.90s; }
+    .d4 { animation-delay: 1.25s; }
+    .d5 { animation-delay: 1.55s; }
+    .d6 { animation-delay: 1.75s; }
+    .d7 { animation-delay: 1.95s; }
 
     @media (prefers-reduced-motion: reduce) {
       .fade { opacity: 1; animation: none; }
@@ -68,7 +80,7 @@
     .brand {
       font-family: 'Playfair Display', serif;
       font-weight: 400;
-      font-size: clamp(36px, 5vw, 48px);
+      font-size: clamp(29px, 4vw, 38px);
       text-align: center;
       color: var(--text);
       line-height: 1;
@@ -95,7 +107,7 @@
       font-family: 'Playfair Display', serif;
       font-style: italic;
       font-weight: 400;
-      font-size: clamp(48px, 6.75vw, 90px);
+      font-size: clamp(38px, 5.4vw, 72px);
       line-height: 1.1;
       color: #ffffff;
       max-width: 18ch;
@@ -124,13 +136,8 @@
       align-items: baseline;
       gap: 24px;
       width: 100%;
-      max-width: 520px;
+      max-width: 640px;
       padding: 0 8px;
-      margin-top: clamp(36px, 5vw, 56px);
-    }
-
-    .fine, .coming {
-      margin-top: 12px;
     }
 
     .input {
@@ -240,7 +247,9 @@
   <main>
     <h1 class="headline fade d2">you've got a question waiting</h1>
     <p class="subtitle fade d3">because someone had to ask 👀</p>
+  </main>
 
+  <footer>
     <form class="form fade d4" id="notify-form" novalidate>
       <input
         class="input"
@@ -257,9 +266,7 @@
     <p class="status" id="notify-status">you're on the list. we'll ping you at launch.</p>
     <p class="fine fade d5">no spam. just the launch ping.</p>
     <p class="coming fade d6">iOS &amp; Android. launching soon.</p>
-  </main>
 
-  <footer>
     <div class="social fade d7">
       <a href="https://www.instagram.com/arewe.app" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
         <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
