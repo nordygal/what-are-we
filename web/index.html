@@ -180,22 +180,54 @@
 
   <script>
     (function () {
+      var SUPABASE_URL = 'https://bnmhywuyxdtfwuqbcxaw.supabase.co';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJubWh5d3V5eGR0Znd1cWJjeGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDM4MTgsImV4cCI6MjA5MTE3OTgxOH0.UN3dG3-T3AwI-Ip2clWI2F2EfnZbe9c0OZ1U5bFTXFg';
+
       var form = document.getElementById('notify-form');
       var emailInput = document.getElementById('notify-email');
       var status = document.getElementById('notify-status');
+      var submitBtn = form.querySelector('.submit');
 
-      form.addEventListener('submit', function (e) {
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        var email = emailInput.value.trim();
-        if (!email) return;
-        // TODO: replace with real backend (Supabase/Resend/etc.)
+        var email = emailInput.value.trim().toLowerCase();
+        if (!email || email.indexOf('@') === -1) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '...';
+
         try {
-          var list = JSON.parse(localStorage.getItem('arewe_notify') || '[]');
-          if (list.indexOf(email) === -1) list.push(email);
-          localStorage.setItem('arewe_notify', JSON.stringify(list));
-        } catch (err) {}
-        emailInput.value = '';
-        status.classList.add('show');
+          var res = await fetch(SUPABASE_URL + '/rest/v1/email_signups', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              email: email,
+              user_agent: navigator.userAgent,
+              source: 'arewe.app'
+            })
+          });
+
+          // 201 = inserted. 409 = already on the list (unique constraint).
+          // Either way, from the user's POV they're on the list.
+          if (res.ok || res.status === 409) {
+            emailInput.value = '';
+            status.classList.add('show');
+          } else {
+            status.textContent = "something's off. try again?";
+            status.classList.add('show');
+          }
+        } catch (err) {
+          status.textContent = "can't reach the server. try again?";
+          status.classList.add('show');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'notify me';
+        }
       });
     })();
   </script>
