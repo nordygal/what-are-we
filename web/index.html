@@ -7,180 +7,241 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;700&display=swap"
     rel="stylesheet"
   >
   <style>
     :root {
       --primary: #cc5a4e;
-      --primary-dark: #742a24;
       --text: #f5e6e0;
       --muted: rgba(255,255,255,0.55);
-      --frosted: rgba(255,255,255,0.14);
-      --frosted-border: rgba(255,255,255,0.10);
+      --subtle: rgba(255,255,255,0.35);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html, body {
+      height: 100%;
+      background-color: #742a24;
+    }
+
     body {
       min-height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(170deg, #cc5a4e 0%, #b84840 30%, #a03a34 55%, #8c3230 80%, #742a24 100%);
+      flex-direction: column;
+      /* Radial coral gradient — darkest stop matches the app palette
+         (Colors.gradientColors end = #742a24). */
+      background:
+        radial-gradient(ellipse 120% 90% at 50% 45%,
+          #cc5a4e 0%,
+          #b84840 35%,
+          #8c3230 75%,
+          #742a24 100%);
       background-attachment: fixed;
-      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-      padding: 20px;
       color: var(--text);
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      padding: 40px 24px 32px;
     }
 
-    .card {
-      background: var(--frosted);
-      border: 1px solid var(--frosted-border);
-      border-radius: 24px;
-      padding: 48px 32px;
-      max-width: 380px;
-      width: 100%;
-      text-align: center;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+    /* ——— stagger-fade animation ——— */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade {
+      opacity: 0;
+      animation: fadeUp 0.95s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    }
+    .d1 { animation-delay: 0.10s; }
+    .d2 { animation-delay: 0.30s; }
+    .d3 { animation-delay: 0.55s; }
+    .d4 { animation-delay: 0.80s; }
+    .d5 { animation-delay: 1.00s; }
+    .d6 { animation-delay: 1.15s; }
+    .d7 { animation-delay: 1.30s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade { opacity: 1; animation: none; }
     }
 
+    /* ——— brand header (same as app Header.tsx, scaled up) ——— */
     .brand {
       font-family: 'Playfair Display', serif;
-      font-size: 32px;
       font-weight: 400;
+      font-size: clamp(36px, 5vw, 48px);
+      text-align: center;
       color: var(--text);
+      line-height: 1;
     }
-
     .brand .tm {
-      font-size: 11px;
+      font-size: 0.3em;
       position: relative;
-      top: -14px;
-      margin-left: 1px;
+      top: -1.3em; /* top-aligned with the 'are we' cap height */
+      margin-left: 2px;
     }
 
-    .message {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
+    /* ——— headline block ——— */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .headline {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(48px, 6.75vw, 90px);
+      line-height: 1.1;
       color: #ffffff;
-      margin: 28px 0 6px;
+      max-width: 18ch;
+      margin: 0 auto;
       letter-spacing: -0.01em;
     }
 
     .subtitle {
       font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
       font-weight: 400;
+      font-size: clamp(14px, 1.5vw, 17px);
       color: var(--muted);
-      margin-bottom: 32px;
+      margin-top: clamp(18px, 2.5vw, 28px);
+    }
+
+    /* ——— footer / email form ——— */
+    footer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
     }
 
     .form {
       display: flex;
-      gap: 8px;
-      align-items: stretch;
-      margin-bottom: 14px;
+      align-items: baseline;
+      gap: 24px;
+      width: 100%;
+      max-width: 520px;
+      padding: 0 8px;
+      margin-top: clamp(36px, 5vw, 56px);
+    }
+
+    .fine, .coming {
+      margin-top: 12px;
     }
 
     .input {
       flex: 1;
       min-width: 0;
-      background: var(--frosted);
-      border: 1px solid var(--frosted-border);
-      border-radius: 999px;
-      padding: 14px 18px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.35);
       color: #ffffff;
       font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 400;
+      font-size: 16px;
+      padding: 10px 0;
       outline: none;
       -webkit-appearance: none;
       appearance: none;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.2s ease;
     }
-
     .input::placeholder {
-      color: rgba(255,255,255,0.45);
+      font-family: 'DM Sans', sans-serif;
+      color: rgba(255,255,255,0.5);
     }
-
     .input:focus {
-      border-color: rgba(255,255,255,0.35);
+      border-bottom-color: rgba(255,255,255,0.7);
     }
 
     .submit {
-      background: #ffffff;
-      color: var(--primary);
+      background: transparent;
       border: none;
-      border-radius: 999px;
-      padding: 14px 22px;
+      color: #ffffff;
       font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 10px 0;
       cursor: pointer;
       white-space: nowrap;
-      -webkit-appearance: none;
-      appearance: none;
-      transition: transform 0.15s ease, opacity 0.15s ease;
+      letter-spacing: 0.01em;
+      transition: opacity 0.2s ease;
     }
-
-    .submit:active { transform: scale(0.97); }
-
-    .submit:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
+    .submit:hover { opacity: 0.8; }
+    .submit:active { opacity: 0.6; }
+    .submit:disabled { opacity: 0.5; cursor: default; }
 
     .fine {
       font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
       font-weight: 400;
-      color: rgba(255,255,255,0.35);
+      font-size: 14px;
+      color: var(--subtle);
       text-align: center;
-      font-style: italic;
+    }
+
+    .coming {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .social {
+      display: flex;
+      justify-content: center;
+      margin-top: 6px;
+    }
+    .social a {
+      color: #ffffff;
+      opacity: 0.5;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+    .social a:hover { opacity: 0.9; }
+    .social svg {
+      display: block;
+      width: 24px;
+      height: 24px;
     }
 
     .status {
       display: none;
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
       color: #ffffff;
-      margin-bottom: 10px;
-    }
-
-    .status.show { display: block; }
-
-    .social {
-      margin-top: 32px;
       text-align: center;
     }
+    .status.show { display: block; }
 
-    .social a {
-      display: inline-block;
-      color: #ffffff;
-      opacity: 0.5;
-      text-decoration: none;
-      transition: opacity 0.15s ease;
-    }
-
-    .social a:hover { opacity: 0.75; }
-
-    .social svg {
-      display: block;
-      width: 22px;
-      height: 22px;
+    @media (max-width: 560px) {
+      .headline {
+        max-width: 12ch;
+      }
+      .form {
+        gap: 16px;
+      }
+      .brand {
+        font-size: 16px;
+        letter-spacing: 0.45em;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="brand">are we<span class="tm">™</span></div>
-    <p class="message">you've got a question waiting</p>
-    <p class="subtitle">because someone had to ask 👀</p>
+  <header class="brand fade d1">are we<span class="tm">™</span></header>
 
-    <form class="form" id="notify-form" novalidate>
+  <main>
+    <h1 class="headline fade d2">you've got a question waiting</h1>
+    <p class="subtitle fade d3">because someone had to ask 👀</p>
+
+    <form class="form fade d4" id="notify-form" novalidate>
       <input
         class="input"
         id="notify-email"
@@ -194,16 +255,19 @@
     </form>
 
     <p class="status" id="notify-status">you're on the list. we'll ping you at launch.</p>
-    <p class="fine">no spam. just the launch ping.</p>
+    <p class="fine fade d5">no spam. just the launch ping.</p>
+    <p class="coming fade d6">iOS &amp; Android. launching soon.</p>
+  </main>
 
-    <div class="social">
+  <footer>
+    <div class="social fade d7">
       <a href="https://www.instagram.com/arewe.app" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
         <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2.163c3.204 0 3.584.012 4.849.07 3.253.149 4.772 1.691 4.92 4.92.058 1.265.069 1.644.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.226-1.664 4.771-4.92 4.92-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-3.26-.15-4.772-1.699-4.92-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.205.013-3.584.07-4.849.149-3.227 1.664-4.771 4.92-4.92 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072C2.695.272.273 2.69.073 7.052.015 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947C23.728 2.695 21.31.273 16.948.073 15.668.015 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zm0 10.162a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
         </svg>
       </a>
     </div>
-  </div>
+  </footer>
 
   <script>
     (function () {
