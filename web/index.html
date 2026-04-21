@@ -4,7 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>are we?™</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
   <style>
+    :root {
+      --primary: #cc5a4e;
+      --primary-dark: #742a24;
+      --text: #f5e6e0;
+      --muted: rgba(255,255,255,0.55);
+      --frosted: rgba(255,255,255,0.14);
+      --frosted-border: rgba(255,255,255,0.10);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
@@ -13,13 +28,15 @@
       align-items: center;
       justify-content: center;
       background: linear-gradient(170deg, #cc5a4e 0%, #b84840 30%, #a03a34 55%, #8c3230 80%, #742a24 100%);
-      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background-attachment: fixed;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
       padding: 20px;
+      color: var(--text);
     }
 
     .card {
-      background: rgba(255,255,255,0.14);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: var(--frosted);
+      border: 1px solid var(--frosted-border);
       border-radius: 24px;
       padding: 48px 32px;
       max-width: 380px;
@@ -30,28 +47,33 @@
     }
 
     .brand {
+      font-family: 'Playfair Display', serif;
       font-size: 32px;
       font-weight: 400;
-      color: #f5e6e0;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
+      color: var(--text);
     }
 
     .brand .tm {
-      font-size: 10px;
-      vertical-align: super;
+      font-size: 11px;
+      position: relative;
+      top: -14px;
+      margin-left: 1px;
     }
 
     .message {
+      font-family: 'DM Sans', sans-serif;
       font-size: 20px;
       font-weight: 700;
-      margin: 24px 0 8px;
       color: #ffffff;
+      margin: 28px 0 6px;
+      letter-spacing: -0.01em;
     }
 
     .subtitle {
+      font-family: 'DM Sans', sans-serif;
       font-size: 15px;
-      color: rgba(255,255,255,0.55);
+      font-weight: 400;
+      color: var(--muted);
       margin-bottom: 32px;
     }
 
@@ -59,57 +81,76 @@
       display: flex;
       gap: 8px;
       align-items: stretch;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .input {
       flex: 1;
       min-width: 0;
-      background: rgba(255,255,255,0.12);
-      border: 0.5px solid rgba(255,255,255,0.3);
+      background: var(--frosted);
+      border: 1px solid var(--frosted-border);
       border-radius: 999px;
       padding: 14px 18px;
       color: #ffffff;
-      font-family: inherit;
+      font-family: 'DM Sans', sans-serif;
       font-size: 15px;
+      font-weight: 400;
       outline: none;
       -webkit-appearance: none;
       appearance: none;
+      transition: border-color 0.15s ease;
     }
 
     .input::placeholder {
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.45);
     }
 
     .input:focus {
-      border-color: rgba(255,255,255,0.5);
+      border-color: rgba(255,255,255,0.35);
     }
 
     .submit {
-      background: rgba(255,255,255,0.55);
-      color: #B5473A;
+      background: #ffffff;
+      color: var(--primary);
       border: none;
       border-radius: 999px;
-      padding: 14px 20px;
-      font-family: inherit;
+      padding: 14px 22px;
+      font-family: 'DM Sans', sans-serif;
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
       -webkit-appearance: none;
       appearance: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
-    .submit:active {
-      transform: scale(0.97);
+    .submit:active { transform: scale(0.97); }
+
+    .submit:disabled {
+      opacity: 0.6;
+      cursor: default;
     }
 
     .fine {
+      font-family: 'DM Sans', sans-serif;
       font-size: 13px;
+      font-weight: 400;
       color: rgba(255,255,255,0.35);
       text-align: center;
-      margin: 0;
+      font-style: italic;
     }
+
+    .status {
+      display: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .status.show { display: block; }
 
     .social {
       margin-top: 32px;
@@ -124,26 +165,12 @@
       transition: opacity 0.15s ease;
     }
 
-    .social a:hover {
-      opacity: 0.75;
-    }
+    .social a:hover { opacity: 0.75; }
 
     .social svg {
       display: block;
       width: 22px;
       height: 22px;
-    }
-
-    .status {
-      display: none;
-      font-size: 14px;
-      color: #ffffff;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-
-    .status.show {
-      display: block;
     }
   </style>
 </head>
@@ -212,8 +239,6 @@
             })
           });
 
-          // 201 = inserted. 409 = already on the list (unique constraint).
-          // Either way, from the user's POV they're on the list.
           if (res.ok || res.status === 409) {
             emailInput.value = '';
             status.classList.add('show');
