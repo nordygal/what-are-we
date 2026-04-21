@@ -54,6 +54,6 @@ var styles = StyleSheet.create({
   tm: {
     fontSize: 10,
     position: 'relative',
-    top: -14,
+    top: -20,
   },
 });

@@ -5,6 +5,7 @@ import { supabase, createQuestion, getOrCreateUser } from './supabase';
 interface SendQuestionParams {
   recipientPhone: string;
   recipientName: string;
+  message?: string;
 }
 
 interface SendQuestionResult {
@@ -40,7 +41,8 @@ export async function sendQuestion(
     return { success: false, deepLinkId: deepLinkId, error: dbResult.error.message };
   }
 
-  var message = 'because one of us had to ask \uD83D\uDC40 ' + url;
+  var defaultMessage = 'because one of us had to ask \uD83D\uDC40 ' + url;
+  var message = params.message ? params.message + ' ' + url : defaultMessage;
 
   var isAvailable = await SMS.isAvailableAsync();
   if (!isAvailable) {

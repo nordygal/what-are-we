@@ -113,6 +113,7 @@ export default function AnswerScreen() {
       var result = await sendQuestion({
         recipientPhone: askerPhone,
         recipientName: question.asker_display_name || 'friend',
+        message: 'your turn \uD83D\uDC40',
       });
       if (result.success) {
         router.replace('/sent');

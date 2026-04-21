@@ -133,13 +133,14 @@ export default function RevealScreen() {
     dateStr = '';
   }
 
-  // Branding sits well below the status bar so it's visible when the image
-  // is shared to an Instagram story — IG overlays a sizeable header
-  // (username + close) on the top ~18% of the story, so we push the brand
-  // down past that zone.
-  var brandTopPadding = insets.top + 140;
-  // Card is centered vertically in the remaining space; we leave enough
-  // bottom padding for the IG story reply bar too.
+  // Layout matches the earlier build (brand reserves insets.top + 56 so the
+  // card centers in the same spot as before). The brand is then visually
+  // nudged further down with translateY — halfway between the old position
+  // (+56) and the IG-story-friendly position (+140), so the brand is more
+  // likely to survive Instagram's header overlay without affecting card
+  // placement.
+  var brandTopPadding = insets.top + 56;
+  var brandOffsetY = 42;
   var bottomPadding = insets.bottom + 72;
 
   return (
@@ -158,7 +159,7 @@ export default function RevealScreen() {
           style={styles.gradient}
         >
           <View style={[styles.brandWrap, { paddingTop: brandTopPadding }]}>
-            <Text style={styles.brand}>
+            <Text style={[styles.brand, { transform: [{ translateY: brandOffsetY }] }]}>
               are we<Text style={styles.brandTm}>™</Text>
             </Text>
           </View>
@@ -266,7 +267,7 @@ var styles = StyleSheet.create({
   brandTm: {
     fontSize: 10,
     position: 'relative',
-    top: -14,
+    top: -20,
   },
   cardWrap: {
     flex: 1,
