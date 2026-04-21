@@ -117,7 +117,7 @@ export default function AnswerScreen() {
       });
       if (result.success) {
         router.replace('/sent');
-      } else {
+      } else if (!result.cancelled) {
         Alert.alert('Error', result.error || 'Could not open SMS composer');
       }
     } catch (e) {

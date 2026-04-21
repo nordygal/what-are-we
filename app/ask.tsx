@@ -115,7 +115,7 @@ export default function AskScreen() {
       });
       if (result.success) {
         router.push('/sent');
-      } else {
+      } else if (!result.cancelled) {
         Alert.alert('Error', 'Could not open SMS composer');
       }
     } catch (e) {
@@ -308,7 +308,7 @@ var styles = StyleSheet.create({
     marginTop: -6,
   },
   questionText: {
-    fontSize: 28,
+    fontSize: 21,
     fontFamily: Fonts.brandBold,
     fontStyle: 'italic',
     color: Colors.white,
