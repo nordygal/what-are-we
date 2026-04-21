@@ -265,18 +265,86 @@
       padding: 0 24px;
     }
 
-    @keyframes planeSpring {
-      0%       { opacity: 0; transform: scale(0.2) rotate(-25deg); }
-      40%      { opacity: 1; transform: scale(1.15) rotate(8deg); }
-      55%      { transform: scale(0.96) rotate(-3deg); }
-      70%      { transform: scale(1.03) rotate(0); }
-      85%,92%  { transform: scale(1) rotate(0); }
-      100%     { opacity: 0; transform: scale(1) rotate(0); }
+    @keyframes planeFlyAway {
+      0%       { opacity: 0; transform: translate(0,0) scale(0.6) rotate(-18deg); }
+      15%      { opacity: 1; transform: translate(0,0) scale(1)   rotate(-18deg); }
+      35%      { opacity: 1; transform: translate(0,0) scale(1)   rotate(-18deg); }
+      70%      { opacity: 0; transform: translate(110px,-130px) scale(0.55) rotate(10deg); }
+      100%     { opacity: 0; transform: translate(110px,-130px) scale(0.55) rotate(10deg); }
     }
 
-    #demo-sent .sent-icon   { opacity: 0; animation: planeSpring 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
-    #demo-sent .sent-title  { opacity: 0; animation: loopFadeUp 4s ease-in-out infinite; animation-delay: 0.5s; }
-    #demo-sent .sent-sub    { opacity: 0; animation: loopFadeUp 4s ease-in-out infinite; animation-delay: 0.65s; }
+    #demo-sent .sent-icon   { opacity: 0; animation: planeFlyAway 4.5s cubic-bezier(0.4, 0.1, 0.3, 1) infinite; }
+    #demo-sent .sent-title  { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite; animation-delay: 0.85s; }
+    #demo-sent .sent-sub    { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite; animation-delay: 1s; }
+
+    /* -------- sent icon alternatives -------- */
+    /* A: envelope fly-away */
+    @keyframes envelopeFly {
+      0%       { opacity: 0; transform: translate(0,0) scale(0.6) rotate(-8deg); }
+      15%      { opacity: 1; transform: translate(0,0) scale(1)   rotate(-8deg); }
+      35%      { opacity: 1; transform: translate(0,0) scale(1)   rotate(-8deg); }
+      70%      { opacity: 0; transform: translate(110px,-130px) scale(0.55) rotate(18deg); }
+      100%     { opacity: 0; transform: translate(110px,-130px) scale(0.55) rotate(18deg); }
+    }
+    #demo-sent-a .sent-icon  { opacity: 0; animation: envelopeFly 4.5s cubic-bezier(0.4, 0.1, 0.3, 1) infinite; }
+    #demo-sent-a .sent-title { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 0.85s; }
+    #demo-sent-a .sent-sub   { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 1s; }
+
+    /* B: love letter seal — stamp down with bounce, then heart-beat */
+    @keyframes loveSeal {
+      0%         { opacity: 0; transform: scale(0.3) rotate(-15deg); }
+      18%        { opacity: 1; transform: scale(1.25) rotate(0); }
+      28%        { transform: scale(0.92) rotate(0); }
+      38%        { transform: scale(1.06) rotate(0); }
+      48%, 65%   { transform: scale(1) rotate(0); }
+      72%        { transform: scale(1.1) rotate(0); }
+      82%, 92%   { transform: scale(1) rotate(0); }
+      100%       { opacity: 0; transform: scale(0.95) rotate(0); }
+    }
+    #demo-sent-b .sent-icon  { opacity: 0; animation: loveSeal 4.5s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
+    #demo-sent-b .sent-title { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 0.9s; }
+    #demo-sent-b .sent-sub   { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 1.05s; }
+
+    /* C: question mark toss — smooth arc with continuous flip */
+    @keyframes qMarkToss {
+      0%       { opacity: 0; transform: translate(0,0)        scale(0.4) rotate(0deg); }
+      12%      { opacity: 1; transform: translate(0,0)        scale(1.08) rotate(0deg); }
+      22%      { opacity: 1; transform: translate(0,0)        scale(1)    rotate(0deg); }
+      34%      { opacity: 1; transform: translate(8px,-12px)  scale(1)    rotate(60deg); }
+      50%      { opacity: 1; transform: translate(35px,-45px) scale(0.95) rotate(200deg); }
+      68%      { opacity: 0.7; transform: translate(80px,-100px) scale(0.82) rotate(380deg); }
+      85%      { opacity: 0.25; transform: translate(135px,-160px) scale(0.65) rotate(540deg); }
+      95%, 100%{ opacity: 0; transform: translate(165px,-190px) scale(0.55) rotate(620deg); }
+    }
+    #demo-sent-c .sent-icon  { opacity: 0; animation: qMarkToss 2s cubic-bezier(0.33, 0.02, 0.36, 1) infinite; display: inline-block; }
+    #demo-sent-c .sent-title { opacity: 0; animation: loopFadeUp 2s ease-in-out infinite 0.4s; }
+    #demo-sent-c .sent-sub   { opacity: 0; animation: loopFadeUp 2s ease-in-out infinite 0.47s; }
+
+    /* E: question mark fly-away — same motion as plane, no flip */
+    @keyframes qMarkFly {
+      0%       { opacity: 0; transform: translate(0,0) scale(0.6) rotate(-8deg); }
+      15%      { opacity: 1; transform: translate(0,0) scale(1)   rotate(-8deg); }
+      35%      { opacity: 1; transform: translate(0,0) scale(1)   rotate(-8deg); }
+      70%      { opacity: 0; transform: translate(110px,-130px) scale(0.55) rotate(10deg); }
+      100%     { opacity: 0; transform: translate(110px,-130px) scale(0.55) rotate(10deg); }
+    }
+    #demo-sent-e .sent-icon  { opacity: 0; animation: qMarkFly 4.5s cubic-bezier(0.4, 0.1, 0.3, 1) infinite; display: inline-block; }
+    #demo-sent-e .sent-title { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 0.85s; }
+    #demo-sent-e .sent-sub   { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 1s; }
+
+    /* D: question mark pulse + fade — stays centered, no flight */
+    @keyframes qMarkPulse {
+      0%        { opacity: 0; transform: scale(0.4); }
+      15%       { opacity: 1; transform: scale(1.15); }
+      25%       { transform: scale(0.95); }
+      35%, 55%  { opacity: 1; transform: scale(1); }
+      62%       { transform: scale(1.08); }
+      72%       { transform: scale(1); }
+      90%, 100% { opacity: 0; transform: scale(1); }
+    }
+    #demo-sent-d .sent-icon  { opacity: 0; animation: qMarkPulse 4.5s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; display: inline-block; }
+    #demo-sent-d .sent-title { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 0.85s; }
+    #demo-sent-d .sent-sub   { opacity: 0; animation: loopFadeUp 4.5s ease-in-out infinite 1s; }
 
     /* =======================================================
        ANSWER — stagger in, bubble breathe, tile tap, btn pulse
@@ -364,10 +432,23 @@
     #demo-answer .grid-answers   { animation-delay: 0.45s; }
     #demo-answer .send-btn       { animation-delay: 0.60s; }
 
-    #demo-answer .tile-exclusive {
-      animation: tileTap 4s ease-in-out infinite;
-      animation-delay: 2s;
+    /* Rotate the tap through all 6 tiles — 12s cycle, tap window ~1.4s each */
+    @keyframes tileTapRotate {
+      0%        { transform: scale(1);    background: rgba(255,255,255,0.14); border-color: var(--frosted-border); }
+      3%        { transform: scale(1.08); background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.8); }
+      6%        { transform: scale(1.02); background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.6); }
+      12%, 100% { transform: scale(1);    background: rgba(255,255,255,0.14); border-color: var(--frosted-border); }
     }
+    #demo-answer .grid-answers .tile {
+      animation: tileTapRotate 12s ease-in-out infinite;
+      transform-origin: center;
+    }
+    #demo-answer .grid-answers .tile:nth-child(1) { animation-delay: 0.6s;  }
+    #demo-answer .grid-answers .tile:nth-child(2) { animation-delay: 2.6s;  }
+    #demo-answer .grid-answers .tile:nth-child(3) { animation-delay: 4.6s;  }
+    #demo-answer .grid-answers .tile:nth-child(4) { animation-delay: 6.6s;  }
+    #demo-answer .grid-answers .tile:nth-child(5) { animation-delay: 8.6s;  }
+    #demo-answer .grid-answers .tile:nth-child(6) { animation-delay: 10.6s; }
 
     /* =======================================================
        REVEAL — card reveal, staggered lines, pill breathing
@@ -520,24 +601,58 @@
       margin-top: 1px;
     }
 
-    @keyframes rowTapHighlight {
-      0%, 80%    { background: transparent; }
-      88%, 92%   { background: rgba(255,255,255,0.10); }
-      100%       { background: transparent; }
-    }
-
+    /* Rows: fade-up stagger only (no highlight). One row demos swipe-to-delete. */
     #demo-receipts .r-row {
+      position: relative;
+      overflow: hidden;
+      display: block;           /* override flex from .r-row base */
+      padding: 0;               /* move padding into .r-content */
+      gap: 0;
+    }
+    #demo-receipts .r-row .r-content {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 6px;
+      position: relative;
+      z-index: 1;
       animation: loopFadeUp 6s ease-in-out infinite;
     }
-    #demo-receipts .r-row:nth-child(1) { animation-delay: 0.20s; }
-    #demo-receipts .r-row:nth-child(2) { animation-delay: 0.30s; }
-    #demo-receipts .r-row:nth-child(3) { animation-delay: 0.40s; }
-    #demo-receipts .r-row:nth-child(4) { animation-delay: 0.50s; }
-    #demo-receipts .r-row.tapping {
-      animation-name: loopFadeUp, rowTapHighlight;
-      animation-duration: 6s, 6s;
-      animation-delay: 0.30s, 0s;
-      animation-iteration-count: infinite, infinite;
+    #demo-receipts .r-row:nth-child(1) .r-content { animation-delay: 0.20s; }
+    #demo-receipts .r-row:nth-child(2) .r-content { animation-delay: 0.30s; }
+    #demo-receipts .r-row:nth-child(3) .r-content { animation-delay: 0.40s; }
+    #demo-receipts .r-row:nth-child(4) .r-content { animation-delay: 0.50s; }
+
+    .r-delete {
+      position: absolute;
+      top: 0; bottom: 0; right: 0;
+      width: 72px;
+      background: #b84840;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      transform: translateX(72px);  /* hidden off-screen at rest */
+      z-index: 0;
+    }
+
+    @keyframes swipeContent {
+      0%, 35%   { transform: translateX(0); }
+      45%, 75%  { transform: translateX(-72px); }
+      85%, 100% { transform: translateX(0); }
+    }
+    @keyframes swipeDelete {
+      0%, 35%   { transform: translateX(72px); }
+      45%, 75%  { transform: translateX(0); }
+      85%, 100% { transform: translateX(72px); }
+    }
+
+    #demo-receipts .r-row.swiping .r-content {
+      animation: loopFadeUp 6s ease-in-out infinite 0.30s,
+                 swipeContent 6s cubic-bezier(0.3, 0.6, 0.2, 1) infinite 1.6s;
+    }
+    #demo-receipts .r-row.swiping .r-delete {
+      animation: swipeDelete 6s cubic-bezier(0.3, 0.6, 0.2, 1) infinite 1.6s;
     }
 
     /* =======================================================
@@ -575,6 +690,46 @@
     #demo-ask .contact:nth-of-type(4) { animation-delay: 0.60s; }
     #demo-ask .send-btn { animation-delay: 0.75s; animation-name: loopFadeUp, btnPulseLoop; animation-duration: 8s, 3s; animation-iteration-count: infinite, infinite; transform-origin: center; }
 
+    /* Ask: cycling subtitle — 10 real answer options with emoji */
+    .q-sub {
+      position: relative;
+      height: 16px;
+      margin: -4px 0 10px;
+      text-align: center;
+    }
+    .q-sub span {
+      position: absolute;
+      left: 0; right: 0;
+      top: 0;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 11px;
+      color: rgba(255,255,255,0.72);
+      opacity: 0;
+    }
+    /* 20s loop, 10 answers, each visible ~1.4s with fade */
+    @keyframes qSub1  { 0%, 7%   { opacity: 1; } 10%, 100% { opacity: 0; } }
+    @keyframes qSub2  { 0%, 10%  { opacity: 0; } 13%, 17%  { opacity: 1; } 20%, 100% { opacity: 0; } }
+    @keyframes qSub3  { 0%, 20%  { opacity: 0; } 23%, 27%  { opacity: 1; } 30%, 100% { opacity: 0; } }
+    @keyframes qSub4  { 0%, 30%  { opacity: 0; } 33%, 37%  { opacity: 1; } 40%, 100% { opacity: 0; } }
+    @keyframes qSub5  { 0%, 40%  { opacity: 0; } 43%, 47%  { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes qSub6  { 0%, 50%  { opacity: 0; } 53%, 57%  { opacity: 1; } 60%, 100% { opacity: 0; } }
+    @keyframes qSub7  { 0%, 60%  { opacity: 0; } 63%, 67%  { opacity: 1; } 70%, 100% { opacity: 0; } }
+    @keyframes qSub8  { 0%, 70%  { opacity: 0; } 73%, 77%  { opacity: 1; } 80%, 100% { opacity: 0; } }
+    @keyframes qSub9  { 0%, 80%  { opacity: 0; } 83%, 87%  { opacity: 1; } 90%, 100% { opacity: 0; } }
+    @keyframes qSub10 { 0%, 90%  { opacity: 0; } 93%, 97%  { opacity: 1; } 100%     { opacity: 0; } }
+
+    #demo-ask .q-sub .s1  { animation: qSub1  20s linear infinite; }
+    #demo-ask .q-sub .s2  { animation: qSub2  20s linear infinite; }
+    #demo-ask .q-sub .s3  { animation: qSub3  20s linear infinite; }
+    #demo-ask .q-sub .s4  { animation: qSub4  20s linear infinite; }
+    #demo-ask .q-sub .s5  { animation: qSub5  20s linear infinite; }
+    #demo-ask .q-sub .s6  { animation: qSub6  20s linear infinite; }
+    #demo-ask .q-sub .s7  { animation: qSub7  20s linear infinite; }
+    #demo-ask .q-sub .s8  { animation: qSub8  20s linear infinite; }
+    #demo-ask .q-sub .s9  { animation: qSub9  20s linear infinite; }
+    #demo-ask .q-sub .s10 { animation: qSub10 20s linear infinite; }
+
     footer.page {
       margin-top: 28px;
       text-align: center;
@@ -608,15 +763,85 @@
         </div>
       </div>
 
-      <!-- /sent -->
+      <!-- /sent — current: plane fly-away -->
       <div class="demo" id="demo-sent">
         <div class="demo-label">
-          <h2>sent confirmation</h2>
+          <h2>sent — ✈️ plane (current)</h2>
           <div class="route">/sent</div>
-          <p>✈️ plane spring-scales in with a tiny rotation (scale 0.2 → 1.15 → 1). title + subtitle fade up after. auto-dismisses to /ask after 2s.</p>
+          <p>plane appears, then flies away toward the upper-right and fades. title + subtitle fade up after. auto-dismisses to /ask after 2s.</p>
         </div>
         <div class="mock mock-sent">
           <div class="sent-icon">✈️</div>
+          <div class="sent-title">Sent!</div>
+          <div class="sent-sub">You'll get a notification when they answer.</div>
+        </div>
+      </div>
+
+      <!-- /sent — A: envelope fly-away -->
+      <div class="demo" id="demo-sent-a">
+        <div class="demo-label">
+          <h2>sent — ✉️ envelope fly-away</h2>
+          <div class="route">/sent · option A</div>
+          <p>same flight path as the plane but with an envelope. reads as "letter sent" more than "paper airplane." classic mail metaphor.</p>
+        </div>
+        <div class="mock mock-sent">
+          <div class="sent-icon">✉️</div>
+          <div class="sent-title">Sent!</div>
+          <div class="sent-sub">You'll get a notification when they answer.</div>
+        </div>
+      </div>
+
+      <!-- /sent — B: love letter seal -->
+      <div class="demo" id="demo-sent-b">
+        <div class="demo-label">
+          <h2>sent — 💌 love letter seal</h2>
+          <div class="route">/sent · option B</div>
+          <p>letter stamps down with a bounce, then heart-beats once before fading. stays centered — no flight. leans into the relationship tone.</p>
+        </div>
+        <div class="mock mock-sent">
+          <div class="sent-icon">💌</div>
+          <div class="sent-title">Sent!</div>
+          <div class="sent-sub">You'll get a notification when they answer.</div>
+        </div>
+      </div>
+
+      <!-- /sent — C: question mark toss (white, smooth arc + flip) -->
+      <div class="demo" id="demo-sent-c">
+        <div class="demo-label">
+          <h2>sent — ❔ question mark toss</h2>
+          <div class="route">/sent · option C</div>
+          <p>white question mark pops in, holds briefly, then arcs smoothly toward the upper-right with a continuous flip. title + subtitle fade up beneath as it flies off.</p>
+        </div>
+        <div class="mock mock-sent">
+          <div class="sent-icon">❔</div>
+          <div class="sent-title">Sent!</div>
+          <div class="sent-sub">You'll get a notification when they answer.</div>
+        </div>
+      </div>
+
+      <!-- /sent — E: question mark fly-away (no flip) -->
+      <div class="demo" id="demo-sent-e">
+        <div class="demo-label">
+          <h2>sent — ❔ question mark fly-away</h2>
+          <div class="route">/sent · option E</div>
+          <p>same clean flight path as the plane, just swapped for a white question mark. no flip, no spin — reads as "your question is on its way."</p>
+        </div>
+        <div class="mock mock-sent">
+          <div class="sent-icon">❔</div>
+          <div class="sent-title">Sent!</div>
+          <div class="sent-sub">You'll get a notification when they answer.</div>
+        </div>
+      </div>
+
+      <!-- /sent — D: question mark pulse -->
+      <div class="demo" id="demo-sent-d">
+        <div class="demo-label">
+          <h2>sent — ❔ question mark pulse</h2>
+          <div class="route">/sent · option D</div>
+          <p>question mark pops in, pulses twice, then fades. quieter than the toss. stays centered. thematic without the motion drama.</p>
+        </div>
+        <div class="mock mock-sent">
+          <div class="sent-icon">❔</div>
           <div class="sent-title">Sent!</div>
           <div class="sent-sub">You'll get a notification when they answer.</div>
         </div>
@@ -627,7 +852,7 @@
         <div class="demo-label">
           <h2>answer flow</h2>
           <div class="route">/answer/[id]</div>
-          <p>stagger-fade on mount (header → asker → speech bubble → grid → submit). speech bubble breathes. one tile periodically taps (scale 1.08 → 1.04 + border glow) to show the selection micro-interaction.</p>
+          <p>stagger-fade on mount (header → asker → speech bubble → grid → submit). speech bubble breathes. the tap micro-interaction rotates through every tile so each answer gets a moment (scale 1.08 → 1.02 + border glow).</p>
         </div>
         <div class="mock mock-answer">
           <div class="mock-header">
@@ -683,7 +908,7 @@
         <div class="demo-label">
           <h2>receipts list</h2>
           <div class="route">/receipts</div>
-          <p>rows fade up in sequence on mount (40ms offset each). one row periodically highlights to show the tap micro-feedback before navigating to /reveal.</p>
+          <p>rows fade up in sequence on mount (100ms offset each). no row highlight. one row periodically demos the swipe-left gesture to reveal a red Delete button.</p>
         </div>
         <div class="mock">
           <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
@@ -691,10 +916,35 @@
             <div class="t">Receipts</div>
             <div class="s">every "what are we?" you've been part of</div>
           </div>
-          <div class="r-row"><div class="av av-a">S</div><div class="body"><div class="title">Asked by <b>Sophie</b></div><div class="ans">exclusive 🪢</div></div><div class="meta"><div class="d">Apr 20</div><div class="n">#00004</div></div></div>
-          <div class="r-row tapping"><div class="av av-b">M</div><div class="body"><div class="title">You asked <b>Marcus</b></div><div class="ans">friends 🙂</div></div><div class="meta"><div class="d">Apr 19</div><div class="n">#00003</div></div></div>
-          <div class="r-row"><div class="av av-c">A</div><div class="body"><div class="title">Asked by <b>Alex</b></div><div class="ans">ride or die ⚔️</div></div><div class="meta"><div class="d">Apr 17</div><div class="n">#00002</div></div></div>
-          <div class="r-row"><div class="av av-d">J</div><div class="body"><div class="title">You asked <b>Jamie</b></div><div class="ans">waiting for answer…</div></div><div class="meta"><div class="d">Apr 14</div><div class="n">#00001</div></div></div>
+          <div class="r-row">
+            <div class="r-content">
+              <div class="av av-a">S</div>
+              <div class="body"><div class="title">Asked by <b>Sophie</b></div><div class="ans">exclusive 🪢</div></div>
+              <div class="meta"><div class="d">Apr 20</div><div class="n">#00004</div></div>
+            </div>
+          </div>
+          <div class="r-row swiping">
+            <div class="r-delete">Delete</div>
+            <div class="r-content">
+              <div class="av av-b">M</div>
+              <div class="body"><div class="title">You asked <b>Marcus</b></div><div class="ans">friends 🙂</div></div>
+              <div class="meta"><div class="d">Apr 19</div><div class="n">#00003</div></div>
+            </div>
+          </div>
+          <div class="r-row">
+            <div class="r-content">
+              <div class="av av-c">A</div>
+              <div class="body"><div class="title">Asked by <b>Alex</b></div><div class="ans">ride or die ⚔️</div></div>
+              <div class="meta"><div class="d">Apr 17</div><div class="n">#00002</div></div>
+            </div>
+          </div>
+          <div class="r-row">
+            <div class="r-content">
+              <div class="av av-d">J</div>
+              <div class="body"><div class="title">You asked <b>Jamie</b></div><div class="ans">waiting for answer…</div></div>
+              <div class="meta"><div class="d">Apr 14</div><div class="n">#00001</div></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -703,7 +953,7 @@
         <div class="demo-label">
           <h2>ask screen (recap)</h2>
           <div class="route">/ask</div>
-          <p>same combo already chosen: stagger-fade on mount + question card breathing + chat-icon bob + contact tap response + send-button pulse after selection.</p>
+          <p>stagger-fade on mount + question card breathing + chat-icon bob + contact tap response + send-button pulse after selection. a cycling italic subtitle under the card rotates through all 10 answer options (in a relationship → exclusive → … → who is this?).</p>
         </div>
         <div class="mock">
           <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
@@ -713,6 +963,18 @@
               <div class="q-question">"what are we?"</div>
             </div>
             <div class="q-icon">💬</div>
+          </div>
+          <div class="q-sub">
+            <span class="s1">in a relationship ❤️</span>
+            <span class="s2">exclusive 🪢</span>
+            <span class="s3">seeing other people 👀</span>
+            <span class="s4">keeping it casual 😏</span>
+            <span class="s5">friends with benefits 🔥</span>
+            <span class="s6">ride or die ⚔️</span>
+            <span class="s7">friends 🙂</span>
+            <span class="s8">don't know yet 🙈</span>
+            <span class="s9">on a break 🧊</span>
+            <span class="s10">who is this? 😭</span>
           </div>
           <div class="search">Search contacts…</div>
           <div class="contact"><div class="avatar av-a">S</div><div class="name">Sophie Chen</div></div>

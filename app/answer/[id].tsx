@@ -11,12 +11,24 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SMS from 'expo-sms';
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
+} from 'react-native-reanimated';
 import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../../lib/constants';
 import { getQuestion, answerQuestion, supabase } from '../../lib/supabase';
 import { sendQuestion } from '../../lib/sms';
 import Header from '../../components/Header';
 import Avatar from '../../components/Avatar';
 import AnswerGrid from '../../components/AnswerGrid';
+
+var FADE_DURATION = 550;
+var STAGGER = 110;
 
 function firstName(name: string | null | undefined): string {
   if (!name) return 'Someone';
@@ -37,6 +49,21 @@ export default function AnswerScreen() {
   var [question, setQuestion] = useState<any>(null);
 
   var askerName = firstName(question?.asker_display_name);
+
+  var bubbleScale = useSharedValue(1);
+  useEffect(function () {
+    bubbleScale.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1750, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1, { duration: 1750, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      false
+    );
+  }, []);
+  var bubbleStyle = useAnimatedStyle(function () {
+    return { transform: [{ scale: bubbleScale.value }] };
+  });
 
   useEffect(function () {
     if (!params.id) return;
@@ -229,28 +256,42 @@ export default function AnswerScreen() {
         </View>
       ) : (
         <View style={[styles.answerRoot, { paddingBottom: insets.bottom + 24 }]}>
-          <View style={styles.askerSection}>
+          <Animated.View
+            entering={FadeInDown.duration(FADE_DURATION)}
+            style={styles.askerSection}
+          >
             <Avatar name={askerName} size={64} />
             <Text style={styles.askerName}>{askerName}</Text>
             <Text style={styles.wantsToKnow}>wants to know...</Text>
-          </View>
+          </Animated.View>
 
-          <View style={styles.bubbleWrapper}>
-            <View style={styles.bubbleTail} />
-            <View style={styles.speechBubble}>
-              <Text style={styles.speechText}>"what are we?"</Text>
-            </View>
-          </View>
+          <Animated.View
+            entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER)}
+            style={styles.bubbleWrapper}
+          >
+            <Animated.View style={bubbleStyle}>
+              <View style={styles.bubbleTail} />
+              <View style={styles.speechBubble}>
+                <Text style={styles.speechText}>"what are we?"</Text>
+              </View>
+            </Animated.View>
+          </Animated.View>
 
           <View style={styles.divider} />
 
-          <View style={styles.gridSection}>
+          <Animated.View
+            entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 2)}
+            style={styles.gridSection}
+          >
             <AnswerGrid selected={selected} onSelect={setSelected} />
-          </View>
+          </Animated.View>
 
           <View style={styles.divider} />
 
-          <View style={styles.buttonContainer}>
+          <Animated.View
+            entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 3)}
+            style={styles.buttonContainer}
+          >
             <Text style={styles.trustText}>trust your gut</Text>
             <TouchableOpacity
               style={selected ? styles.buttonFilled : styles.buttonOutlined}
@@ -266,7 +307,7 @@ export default function AnswerScreen() {
                 </Text>
               )}
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </View>
       )}
     </LinearGradient>

@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   FlatList,
+  Pressable,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -12,16 +13,78 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Contacts from 'expo-contacts';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+  Easing,
+  cancelAnimation,
+} from 'react-native-reanimated';
 import { Colors, Fonts } from '../lib/constants';
 import { sendQuestion } from '../lib/sms';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Avatar from '../components/Avatar';
 
+var FADE_DURATION = 550;
+var STAGGER = 110;
+
 interface ContactItem {
   id: string;
   name: string;
   phone: string;
+}
+
+// Single contact row with its own press-spring. Owning the shared value here
+// (instead of at the screen level) means one press doesn't affect the other
+// rows, and FlatList recycling won't leave a stale animation behind.
+function ContactRow(props: {
+  contact: ContactItem;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+}) {
+  var pressScale = useSharedValue(1);
+
+  var animatedStyle = useAnimatedStyle(function () {
+    return { transform: [{ scale: pressScale.value }] };
+  });
+
+  function handlePressIn() {
+    pressScale.value = withSpring(0.96, { mass: 0.5, damping: 12, stiffness: 250 });
+  }
+  function handlePressOut() {
+    pressScale.value = withSpring(1, { mass: 0.5, damping: 12, stiffness: 200 });
+  }
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Pressable
+        style={[
+          styles.contactRow,
+          props.isSelected && styles.contactRowSelected,
+        ]}
+        onPress={function () {
+          props.onSelect(props.contact.id);
+        }}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <Avatar name={props.contact.name} size={44} />
+        <Text
+          style={[
+            styles.contactName,
+            props.isSelected && styles.contactNameSelected,
+          ]}
+        >
+          {props.contact.name}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
 }
 
 export default function AskScreen() {
@@ -33,9 +96,74 @@ export default function AskScreen() {
   var [selected, setSelected] = useState<string | null>(null);
   var [loading, setLoading] = useState(false);
 
+  // Question card breathes continuously, chat icon bobs continuously. Both
+  // start on mount and run forever.
+  var cardScale = useSharedValue(1);
+  var iconTranslate = useSharedValue(0);
+  var iconRotate = useSharedValue(0);
+  // Send button pulse is only active once a contact is selected.
+  var sendScale = useSharedValue(1);
+
   useEffect(function () {
     loadContacts();
+
+    cardScale.value = withRepeat(
+      withSequence(
+        withTiming(1.015, { duration: 1750, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1, { duration: 1750, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      false
+    );
+    iconTranslate.value = withRepeat(
+      withSequence(
+        withTiming(-2, { duration: 1200, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      false
+    );
+    iconRotate.value = withRepeat(
+      withSequence(
+        withTiming(-6, { duration: 1200, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      false
+    );
   }, []);
+
+  // Start/stop the send-button pulse when `selected` flips.
+  useEffect(function () {
+    if (selected) {
+      sendScale.value = withRepeat(
+        withSequence(
+          withTiming(1.02, { duration: 1400, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.quad) })
+        ),
+        -1,
+        false
+      );
+    } else {
+      cancelAnimation(sendScale);
+      sendScale.value = withTiming(1, { duration: 180 });
+    }
+  }, [selected]);
+
+  var cardAnimStyle = useAnimatedStyle(function () {
+    return { transform: [{ scale: cardScale.value }] };
+  });
+  var iconAnimStyle = useAnimatedStyle(function () {
+    return {
+      transform: [
+        { translateY: iconTranslate.value },
+        { rotate: iconRotate.value + 'deg' },
+      ],
+    };
+  });
+  var sendAnimStyle = useAnimatedStyle(function () {
+    return { transform: [{ scale: sendScale.value }] };
+  });
 
   // If the signed-in user has no display_name yet, bounce to /login so the
   // name step runs. Runs on focus (not mount) so a fresh save in /login
@@ -125,21 +253,12 @@ export default function AskScreen() {
   }
 
   function renderContact(item: { item: ContactItem }) {
-    var contact = item.item;
-    var isSelected = selected === contact.id;
     return (
-      <TouchableOpacity
-        style={[styles.contactRow, isSelected && styles.contactRowSelected]}
-        onPress={function () {
-          setSelected(contact.id);
-        }}
-        activeOpacity={0.7}
-      >
-        <Avatar name={contact.name} size={44} />
-        <Text style={[styles.contactName, isSelected && styles.contactNameSelected]}>
-          {contact.name}
-        </Text>
-      </TouchableOpacity>
+      <ContactRow
+        contact={item.item}
+        isSelected={selected === item.item.id}
+        onSelect={setSelected}
+      />
     );
   }
 
@@ -192,16 +311,22 @@ export default function AskScreen() {
 
       <View style={styles.content}>
         {/* Question card */}
-        <View style={styles.questionCard}>
+        <Animated.View
+          entering={FadeInDown.duration(FADE_DURATION)}
+          style={[styles.questionCard, cardAnimStyle]}
+        >
           <View style={styles.questionCardInner}>
             <Text style={styles.askLabel}>ASK</Text>
             <Text style={styles.questionText}>"what are we?"</Text>
           </View>
-          <Text style={styles.chatIcon}>💬</Text>
-        </View>
+          <Animated.Text style={[styles.chatIcon, iconAnimStyle]}>💬</Animated.Text>
+        </Animated.View>
 
         {/* Search bar */}
-        <View style={styles.searchBar}>
+        <Animated.View
+          entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER)}
+          style={styles.searchBar}
+        >
           <TextInput
             style={styles.searchInput}
             placeholder="Search contacts..."
@@ -209,24 +334,31 @@ export default function AskScreen() {
             value={search}
             onChangeText={setSearch}
           />
-        </View>
+        </Animated.View>
 
         {/* Divider */}
         <View style={styles.divider} />
 
         {/* Contact list */}
-        <FlatList
-          data={filtered}
-          keyExtractor={function (item) {
-            return item.id;
-          }}
-          renderItem={renderContact}
+        <Animated.View
+          entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 2)}
           style={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
+        >
+          <FlatList
+            data={filtered}
+            keyExtractor={function (item) {
+              return item.id;
+            }}
+            renderItem={renderContact}
+            showsVerticalScrollIndicator={false}
+          />
+        </Animated.View>
 
         {/* Send button */}
-        <View style={{ paddingBottom: insets.bottom + 12 }}>
+        <Animated.View
+          entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 3)}
+          style={[{ paddingBottom: insets.bottom + 12 }, sendAnimStyle]}
+        >
           <TouchableOpacity
             style={[
               styles.sendButton,
@@ -247,7 +379,7 @@ export default function AskScreen() {
                 : 'Select a contact'}
             </Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
       </View>
     </LinearGradient>

@@ -12,9 +12,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withRepeat,
+  withSequence,
+  Easing,
+} from 'react-native-reanimated';
 import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../../lib/constants';
 import { getQuestion } from '../../lib/supabase';
 import Avatar from '../../components/Avatar';
+
+var FADE_DURATION = 450;
+var LINE_STAGGER = 90;
 
 export default function RevealScreen() {
   var params = useLocalSearchParams<{ id: string; answer?: string }>();
@@ -25,9 +37,56 @@ export default function RevealScreen() {
   var [receiptNumber, setReceiptNumber] = useState<number | null>(null);
   var captureRefView = useRef<View>(null);
 
+  var cardScale = useSharedValue(0.92);
+  var cardOpacity = useSharedValue(0);
+  var cardTranslate = useSharedValue(18);
+  var pillScale = useSharedValue(1);
+
   useEffect(function () {
     loadQuestion();
   }, [params.id]);
+
+  // Kick off card reveal once the question has loaded, and start the pill
+  // breathing loop. The pill breathes subtly (scale 1 → 1.02) so even if the
+  // user saves the receipt mid-breath, the captured image looks the same.
+  useEffect(function () {
+    if (loading) return;
+    cardOpacity.value = withTiming(1, {
+      duration: 550,
+      easing: Easing.bezier(0.22, 1, 0.36, 1),
+    });
+    cardScale.value = withTiming(1, {
+      duration: 600,
+      easing: Easing.bezier(0.22, 1, 0.36, 1),
+    });
+    cardTranslate.value = withTiming(0, {
+      duration: 600,
+      easing: Easing.bezier(0.22, 1, 0.36, 1),
+    });
+
+    pillScale.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1750, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1, { duration: 1750, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      false
+    );
+  }, [loading]);
+
+  var cardAnimStyle = useAnimatedStyle(function () {
+    return {
+      opacity: cardOpacity.value,
+      transform: [
+        { translateY: cardTranslate.value },
+        { scale: cardScale.value },
+      ],
+    };
+  });
+
+  var pillAnimStyle = useAnimatedStyle(function () {
+    return { transform: [{ scale: pillScale.value }] };
+  });
 
   async function loadQuestion() {
     if (!params.id) return;
@@ -170,17 +229,37 @@ export default function RevealScreen() {
               { paddingBottom: bottomPadding },
             ]}
           >
-            <View style={styles.card}>
-              <Text style={styles.askedText}>
+            <Animated.View style={[styles.card, cardAnimStyle]}>
+              <Animated.Text
+                entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 1)}
+                style={styles.askedText}
+              >
                 {askerName} asked "what are we?"
-              </Text>
+              </Animated.Text>
 
-              <Avatar name={responderName} size={64} />
-              <Text style={styles.responderName}>{responderName}</Text>
-              <Text style={styles.answeredLabel}>answered</Text>
+              <Animated.View
+                entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 2)}
+              >
+                <Avatar name={responderName} size={64} />
+              </Animated.View>
+              <Animated.Text
+                entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 3)}
+                style={styles.responderName}
+              >
+                {responderName}
+              </Animated.Text>
+              <Animated.Text
+                entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 4)}
+                style={styles.answeredLabel}
+              >
+                answered
+              </Animated.Text>
 
               {answerDisplay ? (
-                <View style={styles.answerPill}>
+                <Animated.View
+                  entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 5)}
+                  style={[styles.answerPill, pillAnimStyle]}
+                >
                   <Text
                     style={styles.answerText}
                     adjustsFontSizeToFit
@@ -189,24 +268,33 @@ export default function RevealScreen() {
                   >
                     {answerDisplay.label} {answerDisplay.emoji}
                   </Text>
-                </View>
+                </Animated.View>
               ) : null}
 
               {dateStr ? (
-                <View style={styles.timestamp}>
+                <Animated.View
+                  entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 6)}
+                  style={styles.timestamp}
+                >
                   <Text style={styles.dateText}>{dateStr}</Text>
                   <Text style={styles.timeText}>{timeStr}</Text>
-                </View>
+                </Animated.View>
               ) : null}
 
-              <Text style={styles.receiptText}>
+              <Animated.Text
+                entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 7)}
+                style={styles.receiptText}
+              >
                 {formatReceiptNumber(receiptNumber)}
-              </Text>
+              </Animated.Text>
 
-              <Text style={styles.watermark}>
+              <Animated.Text
+                entering={FadeInDown.duration(FADE_DURATION).delay(LINE_STAGGER * 8)}
+                style={styles.watermark}
+              >
                 are we<Text style={styles.watermarkTm}>™</Text>
-              </Text>
-            </View>
+              </Animated.Text>
+            </Animated.View>
           </View>
         </LinearGradient>
       </View>

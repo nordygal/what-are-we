@@ -12,9 +12,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Fonts } from '../lib/constants';
 import { sendOtp, verifyOtp, supabase, getOrCreateUser } from '../lib/supabase';
 import PrimaryButton from '../components/PrimaryButton';
+
+var FADE_DURATION = 500;
+var STAGGER = 120;
 
 export default function LoginScreen() {
   var insets = useSafeAreaInsets();
@@ -146,7 +150,12 @@ export default function LoginScreen() {
             <Text style={styles.backBtnText}>←</Text>
           </TouchableOpacity>
         ) : null}
-        <Text style={styles.brand}>are we<Text style={styles.tm}>™</Text></Text>
+        <Animated.Text
+          entering={FadeInDown.duration(FADE_DURATION)}
+          style={styles.brand}
+        >
+          are we<Text style={styles.tm}>™</Text>
+        </Animated.Text>
       </View>
 
       <KeyboardAvoidingView
@@ -154,66 +163,101 @@ export default function LoginScreen() {
         style={styles.inner}
       >
         {step === 'phone' ? (
-          <View style={styles.formArea}>
-            <Text style={styles.label}>Enter your phone number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="+1 (555) 000-0000"
-              placeholderTextColor={Colors.textOnGradientMuted}
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              autoFocus
-            />
-            <PrimaryButton
-              title="Send Code"
-              onPress={handleSendOtp}
-              loading={loading}
-              disabled={!phone.trim()}
-            />
+          <View key="step-phone" style={styles.formArea}>
+            <Animated.Text
+              entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER)}
+              style={styles.label}
+            >
+              Enter your phone number
+            </Animated.Text>
+            <Animated.View entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 2)}>
+              <TextInput
+                style={styles.input}
+                placeholder="+1 (555) 000-0000"
+                placeholderTextColor={Colors.textOnGradientMuted}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                autoFocus
+              />
+            </Animated.View>
+            <Animated.View entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 3)}>
+              <PrimaryButton
+                title="Send Code"
+                onPress={handleSendOtp}
+                loading={loading}
+                disabled={!phone.trim()}
+              />
+            </Animated.View>
           </View>
         ) : step === 'otp' ? (
-          <View style={styles.formArea}>
-            <Text style={styles.label}>Enter verification code</Text>
-            <Text style={styles.sublabel}>Sent to {phone}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="000000"
-              placeholderTextColor={Colors.textOnGradientMuted}
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="number-pad"
-              maxLength={6}
-              autoFocus
-            />
-            <PrimaryButton
-              title="Verify"
-              onPress={handleVerifyOtp}
-              loading={loading}
-              disabled={otp.length !== 6}
-            />
+          <View key="step-otp" style={styles.formArea}>
+            <Animated.Text
+              entering={FadeInDown.duration(FADE_DURATION)}
+              style={styles.label}
+            >
+              Enter verification code
+            </Animated.Text>
+            <Animated.Text
+              entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER)}
+              style={styles.sublabel}
+            >
+              Sent to {phone}
+            </Animated.Text>
+            <Animated.View entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 2)}>
+              <TextInput
+                style={styles.input}
+                placeholder="000000"
+                placeholderTextColor={Colors.textOnGradientMuted}
+                value={otp}
+                onChangeText={setOtp}
+                keyboardType="number-pad"
+                maxLength={6}
+                autoFocus
+              />
+            </Animated.View>
+            <Animated.View entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 3)}>
+              <PrimaryButton
+                title="Verify"
+                onPress={handleVerifyOtp}
+                loading={loading}
+                disabled={otp.length !== 6}
+              />
+            </Animated.View>
           </View>
         ) : (
-          <View style={styles.formArea}>
-            <Text style={styles.label}>What's your name?</Text>
-            <Text style={styles.sublabel}>
+          <View key="step-name" style={styles.formArea}>
+            <Animated.Text
+              entering={FadeInDown.duration(FADE_DURATION)}
+              style={styles.label}
+            >
+              What's your name?
+            </Animated.Text>
+            <Animated.Text
+              entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER)}
+              style={styles.sublabel}
+            >
               This shows up when you ask someone a question.
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Your name"
-              placeholderTextColor={Colors.textOnGradientMuted}
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              autoFocus
-            />
-            <PrimaryButton
-              title="Continue"
-              onPress={handleSaveName}
-              loading={loading}
-              disabled={!name.trim()}
-            />
+            </Animated.Text>
+            <Animated.View entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 2)}>
+              <TextInput
+                style={styles.input}
+                placeholder="Your name"
+                placeholderTextColor={Colors.textOnGradientMuted}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+                autoFocus
+              />
+            </Animated.View>
+            <Animated.View entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 3)}>
+              <PrimaryButton
+                title="Continue"
+                onPress={handleSaveName}
+                loading={loading}
+                disabled={!name.trim()}
+              />
+            </Animated.View>
           </View>
         )}
       </KeyboardAvoidingView>
