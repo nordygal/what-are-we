@@ -303,6 +303,21 @@
   </footer>
 
   <script>
+    // Deep-link handoff: if someone lands on /q/<id> (from an SMS link
+    // where iOS universal-link handoff didn't trigger — e.g. Messages
+    // opened the URL in Safari instead of the app), try the app's custom
+    // scheme. If the app is installed, iOS opens it; if not, nothing
+    // happens and the visitor sees the landing page.
+    (function () {
+      var match = window.location.pathname.match(/^\/q\/([^/?]+)/);
+      if (!match) return;
+      var deepLinkId = match[1];
+      // Defer slightly so universal-link handling gets first shot.
+      setTimeout(function () {
+        window.location.href = 'arewe://answer/' + deepLinkId;
+      }, 80);
+    })();
+
     (function () {
       var SUPABASE_URL = 'https://bnmhywuyxdtfwuqbcxaw.supabase.co';
       var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJubWh5d3V5eGR0Znd1cWJjeGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDM4MTgsImV4cCI6MjA5MTE3OTgxOH0.UN3dG3-T3AwI-Ip2clWI2F2EfnZbe9c0OZ1U5bFTXFg';
