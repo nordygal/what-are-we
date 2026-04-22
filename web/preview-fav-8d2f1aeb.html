@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>are we — favorite contact variants</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+  <style>
+    :root {
+      --primary: #cc5a4e;
+      --text: #f5e6e0;
+      --muted: rgba(255,255,255,0.55);
+      --subtle: rgba(255,255,255,0.35);
+      --frosted: rgba(255,255,255,0.14);
+      --frosted-border: rgba(255,255,255,0.18);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #1a1413;
+      color: #f0e6e0;
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      padding: 32px 20px 64px;
+    }
+
+    .wrap { max-width: 1400px; margin: 0 auto; }
+
+    header.page { text-align: center; margin-bottom: 32px; }
+    header.page h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 28px;
+      color: #f5e6e0;
+    }
+    header.page p {
+      color: #a89890;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .demo {
+      background: #241a18;
+      border: 1px solid #3a2a27;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .demo-label { padding: 14px 16px 0; }
+    .demo-label h2 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #f5e6e0;
+      margin-bottom: 4px;
+    }
+    .demo-label p {
+      font-size: 12px;
+      color: #a89890;
+      line-height: 1.45;
+    }
+
+    .mock {
+      margin: 14px;
+      height: 560px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(170deg, #cc5a4e 0%, #b84840 30%, #a03a34 55%, #8c3230 80%, #742a24 100%);
+      position: relative;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+    }
+
+    .mock-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 4px 0 10px;
+    }
+    .mock-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--text);
+    }
+    .mock-brand .tm { font-size: 7px; vertical-align: super; }
+
+    .q-card {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .q-text { display: flex; flex-direction: column; }
+    .q-label {
+      font-size: 8px; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.12em; margin-bottom: 2px;
+    }
+    .q-question {
+      font-family: 'Playfair Display', serif;
+      font-style: italic; font-weight: 700;
+      font-size: 14px; color: #fff;
+    }
+    .q-icon { font-size: 16px; }
+
+    .search {
+      background: var(--frosted);
+      border: 1px solid var(--frosted-border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 6px 4px 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .section-label .count {
+      color: rgba(255,255,255,0.4);
+      font-weight: 500;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 6px 4px;
+    }
+
+    .contact {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 4px;
+      border-radius: 8px;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .av-a { background: #8fa47e; }
+    .av-b { background: #a09470; }
+    .av-c { background: #9482a0; }
+    .av-d { background: #7e9484; }
+    .av-e { background: #a08282; }
+    .av-f { background: #708fa0; }
+
+    .contact .name {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .fav-btn {
+      padding: 6px;
+      font-size: 15px;
+      color: rgba(255,255,255,0.3);
+      line-height: 1;
+    }
+    .fav-btn.on {
+      color: #fff;
+    }
+
+    .fav-btn.gold {
+      color: rgba(255,255,255,0.3);
+    }
+    .fav-btn.gold.on {
+      color: #f4d27a;
+    }
+
+    .send-btn {
+      margin-top: auto;
+      background: var(--frosted);
+      border: 1px solid var(--frosted-border);
+      color: var(--muted);
+      padding: 10px 14px;
+      border-radius: 22px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    footer.page {
+      margin-top: 24px;
+      text-align: center;
+      color: #6a5954;
+      font-size: 12px;
+    }
+
+    /* per-option tinting of the favorited rows */
+    .row-favorited-bg .contact.favorited {
+      background: rgba(255,255,255,0.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="page">
+      <h1>favorite-contact variants</h1>
+      <p>same contact list, four UI treatments for marking and sorting favorites. Sophie &amp; Marcus are favorited in every mock.</p>
+    </header>
+
+    <div class="grid">
+
+      <!-- A: hollow star, no section header -->
+      <div class="demo">
+        <div class="demo-label">
+          <h2>A · star icon only</h2>
+          <p>tap the star to toggle favorite. favorites sort to the top but no header — the star is the only visual cue. minimal chrome.</p>
+        </div>
+        <div class="mock">
+          <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
+          <div class="q-card">
+            <div class="q-text">
+              <div class="q-label">ASK</div>
+              <div class="q-question">"what are we?"</div>
+            </div>
+            <div class="q-icon">💬</div>
+          </div>
+          <div class="search">Search contacts…</div>
+          <div class="contact favorited"><div class="avatar av-a">S</div><div class="name">Sophie Chen</div><div class="fav-btn on">★</div></div>
+          <div class="contact favorited"><div class="avatar av-b">M</div><div class="name">Marcus Lee</div><div class="fav-btn on">★</div></div>
+          <div class="contact"><div class="avatar av-c">A</div><div class="name">Alex Park</div><div class="fav-btn">☆</div></div>
+          <div class="contact"><div class="avatar av-d">J</div><div class="name">Jamie Reyes</div><div class="fav-btn">☆</div></div>
+          <div class="contact"><div class="avatar av-e">K</div><div class="name">Kendra West</div><div class="fav-btn">☆</div></div>
+          <div class="contact"><div class="avatar av-f">T</div><div class="name">Taylor Kim</div><div class="fav-btn">☆</div></div>
+          <div class="send-btn">Select a contact</div>
+        </div>
+      </div>
+
+      <!-- B: star + section header -->
+      <div class="demo">
+        <div class="demo-label">
+          <h2>B · star + section header</h2>
+          <p>small "★ Favorites" label above the pinned rows, thin divider, then the rest. clearer grouping — matches iOS Messages and most contact apps.</p>
+        </div>
+        <div class="mock">
+          <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
+          <div class="q-card">
+            <div class="q-text">
+              <div class="q-label">ASK</div>
+              <div class="q-question">"what are we?"</div>
+            </div>
+            <div class="q-icon">💬</div>
+          </div>
+          <div class="search">Search contacts…</div>
+          <div class="section-label">★ FAVORITES</div>
+          <div class="contact favorited"><div class="avatar av-a">S</div><div class="name">Sophie Chen</div><div class="fav-btn on">★</div></div>
+          <div class="contact favorited"><div class="avatar av-b">M</div><div class="name">Marcus Lee</div><div class="fav-btn on">★</div></div>
+          <div class="section-divider"></div>
+          <div class="contact"><div class="avatar av-c">A</div><div class="name">Alex Park</div><div class="fav-btn">☆</div></div>
+          <div class="contact"><div class="avatar av-d">J</div><div class="name">Jamie Reyes</div><div class="fav-btn">☆</div></div>
+          <div class="contact"><div class="avatar av-e">K</div><div class="name">Kendra West</div><div class="fav-btn">☆</div></div>
+          <div class="contact"><div class="avatar av-f">T</div><div class="name">Taylor Kim</div><div class="fav-btn">☆</div></div>
+          <div class="send-btn">Select a contact</div>
+        </div>
+      </div>
+
+      <!-- C: gold star + soft row tint + section header with count -->
+      <div class="demo row-favorited-bg">
+        <div class="demo-label">
+          <h2>C · gold star + row tint + count</h2>
+          <p>filled star goes warm-gold when on, favorited rows get a subtle white tint to lift them, header shows the count. most visual weight — the favorites really pop.</p>
+        </div>
+        <div class="mock">
+          <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
+          <div class="q-card">
+            <div class="q-text">
+              <div class="q-label">ASK</div>
+              <div class="q-question">"what are we?"</div>
+            </div>
+            <div class="q-icon">💬</div>
+          </div>
+          <div class="search">Search contacts…</div>
+          <div class="section-label">★ FAVORITES <span class="count">· 2</span></div>
+          <div class="contact favorited"><div class="avatar av-a">S</div><div class="name">Sophie Chen</div><div class="fav-btn gold on">★</div></div>
+          <div class="contact favorited"><div class="avatar av-b">M</div><div class="name">Marcus Lee</div><div class="fav-btn gold on">★</div></div>
+          <div class="section-divider"></div>
+          <div class="contact"><div class="avatar av-c">A</div><div class="name">Alex Park</div><div class="fav-btn gold">☆</div></div>
+          <div class="contact"><div class="avatar av-d">J</div><div class="name">Jamie Reyes</div><div class="fav-btn gold">☆</div></div>
+          <div class="contact"><div class="avatar av-e">K</div><div class="name">Kendra West</div><div class="fav-btn gold">☆</div></div>
+          <div class="contact"><div class="avatar av-f">T</div><div class="name">Taylor Kim</div><div class="fav-btn gold">☆</div></div>
+          <div class="send-btn">Select a contact</div>
+        </div>
+      </div>
+
+      <!-- D: heart instead of star, no section header -->
+      <div class="demo">
+        <div class="demo-label">
+          <h2>D · heart icon (no header)</h2>
+          <p>swap the star for a heart — more on-brand for a relationship app. only the filled heart marks favorites; unfavorited rows show no icon at all to keep the list clean.</p>
+        </div>
+        <div class="mock">
+          <div class="mock-header"><div class="mock-brand">are we<span class="tm">™</span></div></div>
+          <div class="q-card">
+            <div class="q-text">
+              <div class="q-label">ASK</div>
+              <div class="q-question">"what are we?"</div>
+            </div>
+            <div class="q-icon">💬</div>
+          </div>
+          <div class="search">Search contacts…</div>
+          <div class="contact favorited"><div class="avatar av-a">S</div><div class="name">Sophie Chen</div><div class="fav-btn on" style="color:#ff6d6d">♥</div></div>
+          <div class="contact favorited"><div class="avatar av-b">M</div><div class="name">Marcus Lee</div><div class="fav-btn on" style="color:#ff6d6d">♥</div></div>
+          <div class="contact"><div class="avatar av-c">A</div><div class="name">Alex Park</div><div class="fav-btn" style="opacity:0"></div></div>
+          <div class="contact"><div class="avatar av-d">J</div><div class="name">Jamie Reyes</div><div class="fav-btn" style="opacity:0"></div></div>
+          <div class="contact"><div class="avatar av-e">K</div><div class="name">Kendra West</div><div class="fav-btn" style="opacity:0"></div></div>
+          <div class="contact"><div class="avatar av-f">T</div><div class="name">Taylor Kim</div><div class="fav-btn" style="opacity:0"></div></div>
+          <div class="send-btn">Select a contact</div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="page">
+      unlinked preview · noindex · to mark/unmark, tap the star/heart. interaction in-app uses the same tap.
+    </footer>
+  </div>
+</body>
+</html>
