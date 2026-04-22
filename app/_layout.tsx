@@ -148,8 +148,10 @@ export default function RootLayout() {
         <Stack.Screen name="ask" />
         <Stack.Screen name="sent" />
         <Stack.Screen name="answer/[id]" />
+        <Stack.Screen name="answered/[id]" />
         <Stack.Screen name="reveal/[id]" />
         <Stack.Screen name="receipts" />
+        <Stack.Screen name="q/[id]" />
       </Stack>
     </GestureHandlerRootView>
   );

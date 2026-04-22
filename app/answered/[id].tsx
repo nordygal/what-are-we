@@ -10,23 +10,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-  FadeInDown,
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-  Easing,
-} from 'react-native-reanimated';
-import { Colors, Fonts, AnswerKey } from '../../lib/constants';
-import { getQuestion, answerQuestion } from '../../lib/supabase';
+import * as SMS from 'expo-sms';
+import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../../lib/constants';
+import { getQuestion, supabase } from '../../lib/supabase';
+import { sendQuestion } from '../../lib/sms';
 import Header from '../../components/Header';
 import Avatar from '../../components/Avatar';
-import AnswerGrid from '../../components/AnswerGrid';
-
-var FADE_DURATION = 550;
-var STAGGER = 110;
 
 function firstName(name: string | null | undefined): string {
   if (!name) return 'Someone';
@@ -35,31 +24,23 @@ function firstName(name: string | null | undefined): string {
   return trimmed.split(/\s+/)[0];
 }
 
-export default function AnswerScreen() {
-  var params = useLocalSearchParams<{ id: string }>();
+// Post-submit confirmation screen. /answer/[id] routes here via router.replace
+// once an answer is saved, so this is its own stack entry — back from here
+// goes to the previous screen (typically /ask), not back to the answer picker.
+export default function AnsweredScreen() {
+  var params = useLocalSearchParams<{ id: string; answer?: string }>();
   var router = useRouter();
   var insets = useSafeAreaInsets();
-  var [selected, setSelected] = useState<AnswerKey | null>(null);
-  var [loading, setLoading] = useState(true);
-  var [submitting, setSubmitting] = useState(false);
   var [question, setQuestion] = useState<any>(null);
+  var [loading, setLoading] = useState(true);
+  var [askBackLoading, setAskBackLoading] = useState(false);
 
   var askerName = firstName(question?.asker_display_name);
-
-  var bubbleScale = useSharedValue(1);
-  useEffect(function () {
-    bubbleScale.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1750, easing: Easing.inOut(Easing.quad) }),
-        withTiming(1, { duration: 1750, easing: Easing.inOut(Easing.quad) })
-      ),
-      -1,
-      false
-    );
-  }, []);
-  var bubbleStyle = useAnimatedStyle(function () {
-    return { transform: [{ scale: bubbleScale.value }] };
-  });
+  // Prefer the query param (passed by /answer at submit time) for instant
+  // render; fall back to the question row which also has the answer
+  // populated after answerQuestion ran.
+  var answerKey = (params.answer || question?.answer) as AnswerKey | undefined;
+  var answerDisplay = answerKey ? getAnswerDisplay(answerKey) : undefined;
 
   useEffect(function () {
     if (!params.id) return;
@@ -69,7 +50,7 @@ export default function AnswerScreen() {
         id: 'demo',
         asker_display_name: 'Sophie',
         asker_phone: '+15555550123',
-        answer: null,
+        answer: params.answer || 'just_friends',
       });
       setLoading(false);
       return;
@@ -78,47 +59,54 @@ export default function AnswerScreen() {
     getQuestion(params.id).then(function (result) {
       if (result.data) {
         setQuestion(result.data);
-        if (result.data.answer) {
-          // Already answered — skip straight to the confirmation screen.
-          router.replace('/answered/' + params.id + '?answer=' + result.data.answer);
-          return;
-        }
       }
       setLoading(false);
     });
   }, [params.id]);
 
-  async function handleSubmit() {
-    if (!selected || !question) return;
-    setSubmitting(true);
-
-    if (question.id === 'demo') {
-      router.replace('/answered/' + params.id + '?answer=' + selected);
+  async function handleAskBack() {
+    if (!question) return;
+    var askerPhone = question.asker_phone;
+    if (!askerPhone) {
+      Alert.alert('Cannot ask back', "We don't have their number on file yet.");
       return;
     }
 
+    setAskBackLoading(true);
     try {
-      var result = await answerQuestion(params.id!, selected);
-      if (result.error) {
-        Alert.alert('Error', 'Could not submit answer');
-        setSubmitting(false);
-      } else {
-        // router.replace so the answer-picker isn't sitting underneath
-        // /answered in the stack — back from /answered goes to /ask cleanly.
-        router.replace('/answered/' + params.id + '?answer=' + selected);
+      var sessionResult = await supabase.auth.getSession();
+      if (!sessionResult.data.session) {
+        router.push('/login');
+        return;
+      }
+
+      var smsAvailable = await SMS.isAvailableAsync();
+      if (!smsAvailable) {
+        Alert.alert('SMS unavailable', 'Your device cannot send SMS messages.');
+        return;
+      }
+
+      var result = await sendQuestion({
+        recipientPhone: askerPhone,
+        recipientName: question.asker_display_name || 'friend',
+        message: 'your turn \uD83D\uDC40',
+      });
+      if (result.success) {
+        router.replace('/sent');
+      } else if (!result.cancelled) {
+        Alert.alert('Error', result.error || 'Could not open SMS composer');
       }
     } catch (e) {
       Alert.alert('Error', 'Something went wrong');
-      setSubmitting(false);
     }
+    setAskBackLoading(false);
   }
 
   function handleBack() {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/ask');
-    }
+    // After answering, the natural "back" is home — not the answer picker
+    // they just submitted from. Replace instead of router.back() so users
+    // can't accidentally re-open the already-answered question.
+    router.replace('/ask');
   }
 
   if (loading) {
@@ -161,76 +149,70 @@ export default function AnswerScreen() {
         <Header />
       </View>
 
-      <View style={[styles.answerRoot, { paddingBottom: insets.bottom + 24 }]}>
-        <Animated.View
-          entering={FadeInDown.duration(FADE_DURATION)}
-          style={styles.askerSection}
-        >
+      <View style={[styles.root, { paddingBottom: insets.bottom + 24 }]}>
+        <View style={styles.centered}>
           <Avatar name={askerName} size={64} />
           <Text style={styles.askerName}>{askerName}</Text>
           <Text style={styles.wantsToKnow}>wants to know...</Text>
-        </Animated.View>
 
-        <Animated.View
-          entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER)}
-          style={styles.bubbleWrapper}
-        >
-          <Animated.View style={bubbleStyle}>
+          <View style={styles.bubbleWrapper}>
             <View style={styles.bubbleTail} />
             <View style={styles.speechBubble}>
               <Text style={styles.speechText}>"what are we?"</Text>
             </View>
-          </Animated.View>
-        </Animated.View>
+          </View>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <Animated.View
-          entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 2)}
-          style={styles.gridSection}
-        >
-          <AnswerGrid selected={selected} onSelect={setSelected} />
-        </Animated.View>
+          <Text style={styles.sentConfirm}>Answer sent ✓</Text>
 
-        <View style={styles.divider} />
+          {answerDisplay ? (
+            <View style={styles.answerBubble}>
+              <Text style={styles.answerText}>
+                {answerDisplay.label} {answerDisplay.emoji}
+              </Text>
+            </View>
+          ) : null}
 
-        <Animated.View
-          entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER * 3)}
-          style={styles.buttonContainer}
-        >
-          <Text style={styles.trustText}>trust your gut</Text>
+          <Text style={styles.yourTurn}>your turn</Text>
+
           <TouchableOpacity
-            style={selected ? styles.buttonFilled : styles.buttonOutlined}
-            onPress={handleSubmit}
-            disabled={!selected || submitting}
+            style={styles.buttonFilled}
+            onPress={handleAskBack}
+            disabled={askBackLoading}
             activeOpacity={0.8}
           >
-            {submitting ? (
+            {askBackLoading ? (
               <ActivityIndicator color={Colors.primary} />
             ) : (
-              <Text style={[styles.buttonText, { color: selected ? Colors.primary : Colors.white }]}>
-                Submit
+              <Text style={[styles.buttonText, { color: Colors.primary }]}>
+                Ask {askerName} back →
               </Text>
             )}
           </TouchableOpacity>
-        </Animated.View>
+
+          <TouchableOpacity
+            onPress={function () {
+              router.replace('/ask');
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.skipText}>or skip for now</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </LinearGradient>
   );
 }
 
 var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerWrap: {
-    position: 'relative',
-  },
+  headerWrap: { position: 'relative' },
   headerLeft: {
     position: 'absolute',
     left: 16,
@@ -247,14 +229,13 @@ var styles = StyleSheet.create({
     color: Colors.textOnGradient,
     fontFamily: Fonts.ui,
   },
-  answerRoot: {
+  root: {
     flex: 1,
     paddingHorizontal: 24,
+    justifyContent: 'center',
   },
-  askerSection: {
+  centered: {
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 16,
   },
   askerName: {
     fontSize: 22,
@@ -297,24 +278,36 @@ var styles = StyleSheet.create({
     fontStyle: 'italic',
     color: Colors.textOnGradient,
   },
-  gridSection: {
-    marginBottom: 8,
-  },
   divider: {
     height: 1,
     backgroundColor: Colors.frostedBorder,
     marginVertical: 10,
     alignSelf: 'stretch',
   },
-  buttonContainer: {
-    alignItems: 'center',
-    marginTop: 8,
+  sentConfirm: {
+    fontSize: 18,
+    fontFamily: Fonts.uiBold,
+    color: '#4ade80',
+    marginBottom: 16,
   },
-  trustText: {
+  answerBubble: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    marginBottom: 32,
+  },
+  answerText: {
+    fontSize: 24,
+    fontFamily: Fonts.brandBold,
+    color: Colors.textOnGradient,
+  },
+  yourTurn: {
     fontSize: 14,
-    fontFamily: Fonts.ui,
-    fontStyle: 'italic',
-    color: Colors.textOnGradientMuted,
+    fontFamily: Fonts.uiBold,
+    color: Colors.white,
     marginBottom: 12,
   },
   buttonFilled: {
@@ -327,20 +320,14 @@ var styles = StyleSheet.create({
     minHeight: 56,
     alignSelf: 'stretch',
   },
-  buttonOutlined: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: Colors.white,
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 56,
-    alignSelf: 'stretch',
-  },
   buttonText: {
     fontSize: 17,
     fontFamily: Fonts.uiBold,
+  },
+  skipText: {
+    fontSize: 9,
+    fontFamily: Fonts.ui,
+    color: 'rgba(255,255,255,0.35)',
+    marginTop: 12,
   },
 });
