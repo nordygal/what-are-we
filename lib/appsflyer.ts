@@ -2,7 +2,12 @@ import appsFlyer from 'react-native-appsflyer';
 import { Platform } from 'react-native';
 
 var APPSFLYER_DEV_KEY = 'RN9ZV7ZfqvXgV7cmSGe4Md';
-var APPSFLYER_APP_ID = 'com.arewe.app'; // Replace with numeric App Store ID when available
+// iOS: numeric App Store Connect app ID (same value as ascAppId in eas.json).
+// Android: bundle/package name. Build 12 shipped with the bundle ID on both
+// platforms, which caused OneLink redirects to show AppsFlyer's "application
+// ID not found" page because iOS needs the numeric form.
+var APPSFLYER_APP_ID =
+  Platform.OS === 'ios' ? '6762583416' : 'com.arewe.app';
 
 export function initAppsFlyer(): Promise<void> {
   return new Promise(function (resolve) {
@@ -54,28 +59,3 @@ export function onInstallConversionData(callback: (questionId: string) => void):
   });
 }
 
-// Generate a OneLink URL for sharing via SMS
-export async function generateOneLinkUrl(questionId: string): Promise<string> {
-  return new Promise(function (resolve) {
-    appsFlyer.generateInviteLink(
-      {
-        channel: 'sms',
-        campaign: 'ask_question',
-        customerID: questionId,
-        userParams: {
-          question_id: questionId,
-          deep_link_value: questionId,
-        },
-      },
-      function (link) {
-        console.log('AppsFlyer OneLink generated:', link);
-        resolve(link);
-      },
-      function (error) {
-        console.log('AppsFlyer OneLink error:', error);
-        // Fallback to regular URL
-        resolve('https://arewe.app/q/' + questionId);
-      }
-    );
-  });
-}

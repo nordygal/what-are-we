@@ -1,7 +1,6 @@
 import * as SMS from 'expo-sms';
 import { generateDeepLinkId, getQuestionUrl } from './deeplink';
 import { supabase, createQuestion, getOrCreateUser } from './supabase';
-import { generateOneLinkUrl } from './appsflyer';
 
 interface SendQuestionParams {
   recipientPhone: string;
@@ -20,16 +19,12 @@ export async function sendQuestion(
   params: SendQuestionParams
 ): Promise<SendQuestionResult> {
   var deepLinkId = generateDeepLinkId();
-  // Prefer the AppsFlyer OneLink so uninstalled recipients are carried
-  // through App Store install -> first-launch with the deep_link_value
-  // intact. generateOneLinkUrl falls back to the plain arewe.app URL if
-  // the SDK isn't ready or dashboard isn't configured.
-  var url;
-  try {
-    url = await generateOneLinkUrl(deepLinkId);
-  } catch (e) {
-    url = getQuestionUrl(deepLinkId);
-  }
+  // Send the arewe.app URL directly. The landing page at /q/<id> owns the
+  // universal-link handoff to the app when installed, and the App Store
+  // fallback with AppsFlyer deferred-deep-link tracking when not. We do NOT
+  // use AppsFlyer's OneLink wrapper in the SMS — build 12 shipped that way
+  // and it surfaced an "application ID not found" redirect to recipients.
+  var url = getQuestionUrl(deepLinkId);
 
   var sessionResult = await supabase.auth.getSession();
   var askerPhone = sessionResult.data.session?.user?.phone;
