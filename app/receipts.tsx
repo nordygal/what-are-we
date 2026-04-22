@@ -12,10 +12,15 @@ import { FlatList, Swipeable } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Fonts, AnswerKey, getAnswerDisplay } from '../lib/constants';
 import { getMyReceipts, deleteReceipt } from '../lib/supabase';
 import Header from '../components/Header';
 import Avatar from '../components/Avatar';
+
+var ROW_STAGGER = 70;  // ms between each row's fade-up
+var ROW_FADE_DURATION = 450;
+var ROW_MAX_STAGGER_INDEX = 8;  // cap so a long list doesn't drip in for seconds
 
 interface Receipt {
   id: string;
@@ -103,8 +108,12 @@ export default function ReceiptsScreen() {
     }
   }
 
-  function renderRow(item: { item: Receipt }) {
+  function renderRow(item: { item: Receipt; index: number }) {
     var r = item.item;
+    // Stagger the fade-up on mount. Cap the delay so long lists don't take
+    // forever to settle; after N rows, everything arrives together.
+    var staggerIndex = Math.min(item.index, ROW_MAX_STAGGER_INDEX);
+    var delay = staggerIndex * ROW_STAGGER;
     var otherName =
       r.role === 'asker'
         ? r.recipient_display_name || 'recipient'
@@ -130,6 +139,9 @@ export default function ReceiptsScreen() {
     }
 
     return (
+      <Animated.View
+        entering={FadeInDown.duration(ROW_FADE_DURATION).delay(delay)}
+      >
       <Swipeable
         ref={function (ref) {
           swipeableRef = ref;
@@ -178,6 +190,7 @@ export default function ReceiptsScreen() {
           </View>
         </TouchableOpacity>
       </Swipeable>
+      </Animated.View>
     );
   }
 
