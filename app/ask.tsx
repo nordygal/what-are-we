@@ -24,7 +24,7 @@ import Animated, {
   Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { Colors, Fonts, ANSWER_OPTIONS } from '../lib/constants';
+import { Colors, Fonts } from '../lib/constants';
 import { sendQuestion } from '../lib/sms';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
@@ -32,8 +32,6 @@ import Avatar from '../components/Avatar';
 
 var FADE_DURATION = 550;
 var STAGGER = 110;
-var SUBTITLE_DWELL = 2000;     // how long each answer is held visible
-var SUBTITLE_CROSSFADE = 220;  // out-then-in fade time (each half)
 
 interface ContactItem {
   id: string;
@@ -86,50 +84,6 @@ function ContactRow(props: {
         </Text>
       </Pressable>
     </Animated.View>
-  );
-}
-
-// Italic subtitle under the question card that cycles through every answer
-// option (imported from lib/constants so it can never drift from the real
-// answer grid). Each item holds for ~2s, with a short crossfade between.
-// Purpose: hint to askers what kinds of answers they might get, since there
-// is no onboarding yet.
-function CyclingSubtitle() {
-  var [index, setIndex] = useState(0);
-  var opacity = useSharedValue(1);
-
-  useEffect(function () {
-    var timer = setInterval(function () {
-      opacity.value = withTiming(0, { duration: SUBTITLE_CROSSFADE });
-      var swap = setTimeout(function () {
-        setIndex(function (prev) {
-          return (prev + 1) % ANSWER_OPTIONS.length;
-        });
-        opacity.value = withTiming(1, { duration: SUBTITLE_CROSSFADE });
-      }, SUBTITLE_CROSSFADE);
-      // Capture swap timeout so StrictMode / fast re-renders don't leave it
-      // dangling; attach it on the interval's ref via a closure.
-      (timer as any)._swap = swap;
-    }, SUBTITLE_DWELL);
-    return function () {
-      clearInterval(timer);
-      if ((timer as any)._swap) clearTimeout((timer as any)._swap);
-    };
-  }, []);
-
-  var style = useAnimatedStyle(function () {
-    return { opacity: opacity.value };
-  });
-
-  var current = ANSWER_OPTIONS[index];
-
-  return (
-    <Animated.Text
-      style={[styles.cyclingSubtitle, style]}
-      numberOfLines={1}
-    >
-      {current.label} {current.emoji}
-    </Animated.Text>
   );
 }
 
@@ -368,13 +322,6 @@ export default function AskScreen() {
           <Animated.Text style={[styles.chatIcon, iconAnimStyle]}>💬</Animated.Text>
         </Animated.View>
 
-        <Animated.View
-          entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER / 2)}
-          style={styles.cyclingSubtitleWrap}
-        >
-          <CyclingSubtitle />
-        </Animated.View>
-
         {/* Search bar */}
         <Animated.View
           entering={FadeInDown.duration(FADE_DURATION).delay(STAGGER)}
@@ -470,17 +417,6 @@ var styles = StyleSheet.create({
   chatIcon: {
     fontSize: 24,
     marginLeft: 12,
-  },
-  cyclingSubtitleWrap: {
-    marginTop: 8,
-    alignItems: 'center',
-  },
-  cyclingSubtitle: {
-    fontSize: 13,
-    fontFamily: Fonts.brand,
-    fontStyle: 'italic',
-    color: Colors.textOnGradientMuted,
-    textAlign: 'center',
   },
   receiptsBtn: {
     width: 40,
