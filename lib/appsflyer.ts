@@ -1,13 +1,14 @@
 import appsFlyer from 'react-native-appsflyer';
-import { Platform } from 'react-native';
 
 var APPSFLYER_DEV_KEY = 'RN9ZV7ZfqvXgV7cmSGe4Md';
-// iOS: numeric App Store Connect app ID (same value as ascAppId in eas.json).
-// Android: bundle/package name. Build 12 shipped with the bundle ID on both
-// platforms, which caused OneLink redirects to show AppsFlyer's "application
-// ID not found" page because iOS needs the numeric form.
-var APPSFLYER_APP_ID =
-  Platform.OS === 'ios' ? '6762583416' : 'com.arewe.app';
+// Using the bundle identifier on both platforms matches build 12 — where the
+// app opened cleanly. Build 13 tried switching iOS to the numeric App Store
+// ID ('6762583416') and the native SDK threw an NSException during initSdk on
+// iOS 26.1, causing a startup crash via unhandled TurboModule exception. We
+// aren't using AppsFlyer OneLink in the SMS path anymore, so having the
+// "wrong" iOS appId here only means deferred-deep-link attribution is
+// unreliable — a known limitation we'll address via a different flow later.
+var APPSFLYER_APP_ID = 'com.arewe.app';
 
 export function initAppsFlyer(): Promise<void> {
   return new Promise(function (resolve) {
